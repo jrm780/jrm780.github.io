@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on Julian Miller</title>
+    <link>http://www.julianmiller.ca/categories/</link>
+    <description>Recent content in Categories on Julian Miller</description>
+    <generator>Hugo -- gohugo.io</generator>
+    
+	<atom:link href="http://www.julianmiller.ca/categories/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Education</title>
+      <link>http://www.julianmiller.ca/categories/education/</link>
+      <pubDate>Tue, 27 Jun 2017 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/categories/education/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Software</title>
+      <link>http://www.julianmiller.ca/categories/software/</link>
+      <pubDate>Tue, 27 Jun 2017 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/categories/software/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

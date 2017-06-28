@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='description' content='The contents of this article were originally written for a research paper several years ago. It is a general overview and implementation of common network programming techniques still heavily used in online video games.
+1. Introduction In this report, the fundamentals of a real-time interactive simulation consisting of multiple clients connected over a network are examined and implemented. Paddles in a Networked Game (Ping) is a tennis-like computer game in which two players each control a paddle at either end of the screen.'>
+
+<meta property='og:title' content='Paddles in a Networked Game: A Real-Time Interactive Simulation &bull; Julian'>
+<meta property='og:description' content='The contents of this article were originally written for a research paper several years ago. It is a general overview and implementation of common network programming techniques still heavily used in online video games.
+1. Introduction In this report, the fundamentals of a real-time interactive simulation consisting of multiple clients connected over a network are examined and implemented. Paddles in a Networked Game (Ping) is a tennis-like computer game in which two players each control a paddle at either end of the screen.'>
+<meta property='og:url' content='http://www.julianmiller.ca/blog/ping/'>
+<meta property='og:site_name' content='Julian Miller'>
+<meta property='og:type' content='article'><meta property='article:section' content='Blog'><meta property='article:tag' content='Ping'><meta property='article:tag' content='Programming'><meta property='article:tag' content='Networking'><meta property='article:tag' content='Game'><meta property='article:published_time' content='2017-06-27T00:00:00&#43;06:00'/><meta property='article:modified_time' content='2017-06-27T00:00:00&#43;06:00'/>
+
+<meta name="generator" content="Hugo 0.24.1" />
+
+  <base href='http://www.julianmiller.ca/'>
+  <title>Paddles in a Networked Game: A Real-Time Interactive Simulation &bull; Julian</title>
+  <link rel='canonical' href='http://www.julianmiller.ca/blog/ping/'>
+  <link href='' rel='alternate' type='application/rss+xml' title='Julian Miller' />
+  <link rel='icon' href='/favicon.ico'>
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Ubuntu:400,400i,700&subset=latin'>
+<link rel='stylesheet' href='/css/main.cc66fabc.css'>
+
+  <link rel='stylesheet' href='/css/custom.css'>
+
+
+
+</head>
+
+
+<body class='page'>
+  <div class='site'>
+    <header id='header' class='header-container'>
+      <div class='site-header'>
+        <nav id='navmenu' aria-label='Main Menu'>
+  <ul class='main-menu'>
+    
+    <li>
+      <a href='/'>Home</a>
+    </li>
+    
+    <li>
+      <a href='/blog/'>Blog</a>
+    </li>
+    
+    <li>
+      <a href='/about/'>About</a>
+    </li>
+    
+    <li>
+      <a href=''></a>
+    </li>
+    
+  </ul>
+</nav>
+
+        <div class='site-info'>
+          
+          <p class='site-title title'>Julian Miller</p>
+          
+          <p class='site-description'></p>
+        </div>
+      </div>
+    </header>
+
+
+<main class='main'>
+  <article class='entry'>
+    <header class='entry-header'>
+  <div class='entry-info'>
+    <h1 class='entry-title title'>Paddles in a Networked Game: A Real-Time Interactive Simulation</h1>
+    
+  </div>
+  
+<div class='meta'>
+  <span class='posted-on'>
+    <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/>
+  
+  </svg>
+
+    <span class='screen-reader'>Posted on </span>
+    <time class='date' datetime='2017-06-27T00:00:00&#43;06:00'>2017, Jun 27</time>
+  </span>
+  
+  <span class='byline'>
+    <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path d="M21,21V20c0-2.76-4-5-9-5s-9,2.24-9,5v1"/>
+  <path d="M16,6.37A4,4,0,1,1,12.63,3,4,4,0,0,1,16,6.37Z"/>
+  
+  </svg>
+
+    <span class='screen-reader'> by </span>
+    Julian
+  </span>
+  
+</div>
+
+
+</header>
+
+    <div class='entry-content'>
+  
+
+<p>The contents of this article were originally written for a research paper several years ago. It is a general overview and implementation of common network programming techniques still heavily used in online video games.</p>
+
+<h1 id="1-introduction">1. Introduction</h1>
+
+<p>In this report, the fundamentals of a real-time interactive simulation consisting of multiple clients connected over a network are examined and implemented. Paddles in a Networked Game (Ping) is a tennis-like computer game in which two players each control a paddle at either end of the screen. A ball bounces between the paddles, and players score by making the ball pass beyond the opposing player&rsquo;s paddle. Due to the real-time interactivity of Ping, propagation delay over the network can become troublesome. Therefore, techniques including client-side interpolation and prediction are used to provide an acceptable user experience.
+<img src="blog/ping/ping.PNG" alt="PING" /></p>
+
+<h2 id="2-background">2. Background</h2>
+
+<p>Several techniques have been developed to handle the issue of network latency. Generally, the user is unaware of their presence, but, without these techniques, real-time interactive applications would be rendered unusable over standard IP <a href="/blog/ping#references"><sup>1</sup></a>.   The most common techniques include data compression, interpolation, prediction, dead-reckoning, and lag compensation. Ping focuses on client-side input prediction and interpolation with respect to client-server architecture.</p>
+
+<h3 id="2-1-client-server-architecture">2.1 Client-Server Architecture</h3>
+
+<p>Many games use a client-server architecture in which a central game server allows players to connect to it through game clients. The server is usually authoritative, meaning it has final say with regard to the score of players and where entities are positioned <a href="/blog/ping#references"><sup>3</sup></a>. Naturally, the client and server must communicate in a way such that their states are synchronized. One method of synchronization could be for the clients and server to run their simulations with identical code and have the client periodically inform the server of its state. For example, <code>client A</code> tells the server its paddle is currently at position <code>(x,y)</code>, and the server incorporates this information into its own state, subsequently informing the other clients about the position of <code>client A.</code>
+<img src="blog/ping/ping-client-server.PNG" alt="Client-server" /></p>
+
+<p>However, this introduces the ability to cheat, as <code>client A</code> could give the server a &ldquo;fake&rdquo; position. In fact, a player could effectively teleport from one position to another by giving the server two very different positions, one after the other.</p>
+
+<p>In order to prevent cheating and to ensure the clients aren&rsquo;t performing game-breaking maneuvers (e.g., teleporting), a better approach is for the clients to inform the server only about player input <a href="/blog/ping#References"><sup>2</sup></a>. For example, <code>player 1</code> presses a button on her controller, and the game client sends a message to the server informing it of the button-press. The server can then process the input, update its state accordingly, and send the new state to all of the clients. The players may still be able to send &ldquo;fake&rdquo; input, but the input will always result in a valid maneuver as defined by the server. However, this creates another problem; because the input message must travel to the server and the new server state must travel back to the client, there is a noticeable delay between when <code>player 1</code> presses a button and when <code>player 1</code> actually sees the effect of pressing the button.</p>
+
+<h3 id="2-2-client-side-prediction">2.2 Client-Side Prediction</h3>
+
+<p>Assume a player has pressed a button to move left, and there is a network round trip time of 100 milliseconds. The <code>move left</code> message is sent to the server, and the resulting state is received by the client 100 milliseconds later. This means the player would see his own change in movement with a 100 millisecond delay. This phenomenon feels unnatural, and becomes worse with higher latencies.
+<img src="blog/ping/ping-delay.PNG" alt="Delay" /></p>
+
+<p>In order to overcome this and provide immediate feedback for user input, the game client must somehow predict the player&rsquo;s movement and immediately present the resulting position to the user before it has received the updated server state. In order to do this, the client simply runs the exact same code as the server, so the client can determine the effect of the received input. Note that Ping only predicts local movement, as it is impossible to predict what other players might do. This indeed implies that other clients are actually viewed 100 milliseconds in the past.
+<img src="blog/ping/ping-prediction.PNG" alt="Prediction" /></p>
+
+<p>After the client prediction has taken place, the client will still eventually receive the updated server state. Because the server is authoritative, if the predicted state somehow does not match the server state, the server state must be accepted as the final state. The effect of these errors can be minimized by gradually correcting the difference in entity positions in a smooth manner. Another server reconciliation method is to store the input on the client, and reapply it to the new state, after it is received from the server. In Ping, after a player scores a point, the positions of the ball and paddles are reset, which removes any discrepancies between states. Because scoring occurs frequently, this is an effective method of state reconciliation.</p>
+
+<h3 id="2-3-interpolation">2.3 Interpolation</h3>
+
+<p>Sending the server state to clients every time it is updated would produce a lot of unnecessary network traffic. This would become especially problematic on low-bandwidth connections. Instead, the server sends snapshots of its state to the clients at a much lower rate. Ping updates its simulation 60 times per second, but the server sends its state to clients at a rate of only 20 times per second. Because the clients receive server state updates at a low rate, the game appears choppy. Interpolation combats this issue by computing the positions of entities between two received states <a href="/blog/ping#References"><sup>7</sup></a>.</p>
+
+<p>Ping stores the two most recently received state snapshots from the server. When the client receives a new snapshot, the oldest is discarded. Now, instead of rendering the most recent state to the screen, the client renders a state interpolated appropriately between the two stored states. This provides a much smoother animation, as it appears as though the server states are being received at the full simulation speed of 60 times per second.</p>
+
+<pre><code class="language-C++">void GameClient::update()
+{
+    const float snapshotDelta = snapshot.time - prevSnapshot.time;
+    const float alpha = (localTime - prevSnapshot.time - 0.05f) / snapshotDelta;
+    player.position = alpha*snapshot.playerPosition +
+                      (1-alpha)*prevSnapshot.playerPosition;
+}
+</code></pre>
+
+<h2 id="3-implementation">3. Implementation</h2>
+
+<p>Ping is written in C++ and makes use of the Simple and Fast Multimedia Library (SFML) <a href="/blog/ping#References"><sup>5</sup></a>. SFML was chosen because it is a cross-platform library that allows for higher-level object-oriented OpenGL rendering and socket programming. Ping uses a client-server architecture, where players run game clients on their machines which connect to a server hosted on another machine. An abstract Game class is used as a controller that handles the initialization of resources, socket connections, and the main update loop. The update loop occurs at a fixed 60Hz to ensure determinism across the server and clients.
+<img src="blog/ping/ping-game-diagram.PNG" alt="PING" /></p>
+
+<p>Like many of the other Ping classes, Game implements an Updateable interface, which gives it an update() method; this method is executed at every iteration of the main loop. Two Paddle objects and a Ball object are contained in a Stage object (Figure 2), which is contained in the Game object. Because client-side prediction relies on the client and server running identical simulations, both the GameClient and GameServer inherit the Game class, giving them similar attributes.
+<img src="blog/ping/ping-stage-diagram.PNG" alt="PING" /></p>
+
+<h3 id="3-1-the-server">3.1 The Server</h3>
+
+<p>Upon initialization, the GameServer waits for incoming client TCP connections. TCP is used, because Ping depends on reliable and in-order packet transferring. SFML also disables Nagle&rsquo;s Algorithm, which can otherwise be problematic when immediate packet sending is required. Furthermore, the development of a lightweight and reliable UDP &ldquo;connection&rdquo; is outside the scope of this project. When a client connects, the server responds with a ClientConnected message and assigns that client a playerIndex, so the client is aware of which paddle it is controlling.  After the second client connects and has been assigned a playerIndex, the GameServer sends a GameStarted message to the clients and enters the main update loop.</p>
+
+<p>The Ball begins at the centre of the Stage and is released in a pseudo-random direction after a three-second countdown. A BallReleased message is sent to the clients when this occurs. Each subsequent iteration simply updates the GameServer&rsquo;s Stage, which simulates the physics of the Ball, assuming a velocity of constant magnitude and perfectly-elastic collisions with the boundaries of the Stage. Prior to updating the Stage, however, the GameServer applies any client input to the paddles, if a PlayerMoved message has been received. When a player has scored, the clients are notified by a PlayerScored message, the Stage is reset, and the three-second countdown begins once again.</p>
+
+<h3 id="3-2-the-client">3.2 The Client</h3>
+
+<p>When the GameClient is initialized, it attempts to establish a TCP connection with the supplied server IP address. After a connection has been established, a ClientConnected message is expected to be sent from the server to the GameClient. The ClientConnected message informs the GameClient of which paddle it is controlling. After both GameClients have connected to the server, a GameStarted message is sent by the server to the clients. At this point, the GameClient opens the graphical display (Figure 3), and the user is presented with a window which displays the three-second countdown.</p>
+
+<p>Once the Ball is released, the player is able to move her paddle left or right using the keyboard. Each key-press and key-release sends a PlayerMoved message to the server. Additionally, the GameClient uses the same Stage update algorithm as the GameServer, which effectively predicts the resulting paddle position and gives the user immediate feedback of his input. In order to view the effect of prediction, it may be toggled on and off by the user.</p>
+
+<h3 id="3-3-synchronization">3.3 Synchronization</h3>
+
+<p>When a player has scored, the server notifies the clients of this event through a PlayerScored message, and the server and clients reset their Stages. This resets all entity positions such that the server and clients all match each other. Additionally, the GameServer sends GameSync messages to the clients at 20Hz. Each GameSync message contains a snapshot of the server–including scores, paddle, and ball position at the time the message was sent. The GameClient then sets its entity positions to match the server state.</p>
+
+<p>The GameSync rate is made much lower than that of the 60Hz main update loop to minimize the amount of network traffic required by the simulation. In order to provide a quality experience at the user-end, client-side interpolation is employed to offer a smooth transition between the received states. This interpolation may be toggled on and off by the user, to gain a better understanding of its effect. Table 1 outlines all of the messages passed between the server and clients in order to keep them synchronized.</p>
+
+<table>
+<thead>
+<tr>
+<th>Message Type</th>
+<th>Included Data</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>ClientConnected</td>
+<td>int: the player index</td>
+<td>Sent from server to client when a client connects</td>
+</tr>
+
+<tr>
+<td>GameStarted</td>
+<td></td>
+<td>Sent from server to client when the game begins</td>
+</tr>
+
+<tr>
+<td>PlayerMoveLeft</td>
+<td>bool: start or stop</td>
+<td>Sent client to server when player has started/stopped moving left</td>
+</tr>
+
+<tr>
+<td>PlayerMoveRight</td>
+<td>bool: start or stop</td>
+<td>Sent client to server when player has started/stopped moving right</td>
+</tr>
+
+<tr>
+<td>PlayerScored</td>
+<td>int: the player index</td>
+<td>Sent from the server to client when a player has scored</td>
+</tr>
+
+<tr>
+<td>BallReleased</td>
+<td>float: the ball angle</td>
+<td>Sent from the server to the client when the ball is set in motion</td>
+</tr>
+
+<tr>
+<td>GameSync</td>
+<td>snapshot of server state</td>
+<td>Sent from server to client 20 times per second</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="4-results">4. Results</h2>
+
+<p>The implementation of Ping was tested on Microsoft Windows over a wireless local-area-network. The server was hosted on a desktop with an Intel Core 2 Quad Q8800 processor and 4GB DDR3 memory. One of the game clients was also run on the server. The other client was run on a laptop with an Intel Core i5 processor and 8GB DDR3 memory. The laptop also made use of SoftPerfect Connection Emulator <a href="/blog/ping#References"><sup>6</sup></a>, which simulates a wide area network connection and allows for variable conditions, such as bitrate, latency, and packet loss. During average play, Ping consumed 28.1Kbps downstream and 11.5Kbps upstream. Therefore Ping was completely playable and ran smoothly on a simulated 48.0Kbps modem. Ideally, this could be further optimized. Additionally, latency was required to exceed 150 milliseconds before it became noticeable.</p>
+
+<h2 id="5-conclusion">5. Conclusion</h2>
+
+<p>There are many techniques developers can implement to cope with the effects of network latency in real-time interactive applications. While Ping does not make use of all of them, a combination of efficient message passing, prediction, and interpolation provide an acceptable user experience. By sending fewer game synchronization messages, network traffic is reduced and congestion is avoided. Without client-side interpolation, this low synchronization rate would not be possible, as it would produce poor animation quality on the client-side. Input prediction also provides immediate feedback for user input, eliminating the potential effects of input lag.</p>
+
+<p>The source code for Ping is available on GitHub: <a href="https://github.com/jrm780/Ping">https://github.com/jrm780/Ping</a></p>
+
+<h2 id="references">References</h2>
+
+<ol>
+<li>Anthony Steed. 2011. Introduction to networked graphics. In SIGGRAPH Asia 2011 Courses (SA &lsquo;11). ACM, New York, NY, USA, , Article 12, 159 pages. DOI=<code>10.1145/2077434.2077445</code> <a href="http://doi.acm.org/10.1145/2077434.2077445">http://doi.acm.org/10.1145/2077434.2077445</a>.</li>
+<li>G. Fiedler. Networking for Game Programmers, <a href="http://gafferongames.com">http://gafferongames.com</a>.</li>
+<li>G. Gambetta. Fast-paced multiplayer, <a href="http://www.gabrielgambetta.com/?p=11">http://www.gabrielgambetta.com/?p=11</a>.</li>
+<li>Marescaux J, et al. Transatlantic Robot-Assisted Telesurgery. Nature 2001;413:379–380.</li>
+<li>Simple and Fast Multimedia Library, <a href="http://www.sfml-dev.org/">http://www.sfml-dev.org/</a>.</li>
+<li>SoftPerfect WAN Connection Emulator for Windows, <a href="http://www.softperfect.com/">http://www.softperfect.com/</a>.</li>
+<li>Source Multiplayer Networking, <a href="https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking">https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking</a>.</li>
+</ol>
+
+</div>
+
+    
+<footer class='entry-footer'>
+  
+    
+      
+      
+
+<div class='categories'>
+  <span class='category-icon'>
+    <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path d="M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5A2,2,0,0,1,4,3H9l2,3h9a2,2,0,0,1,2,2Z"/>
+  
+  </svg>
+
+  </span>
+  <span class='screen-reader'>Categories: </span><a class='category' href='/categories/software'>Software</a>, <a class='category' href='/categories/education'>Education</a></div>
+
+    
+  
+    
+      
+      
+
+<div class='tags'>
+  <span class='tag-icon'>
+    <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M10.605 0h-10.605v10.609l13.391 13.391 10.609-10.604-13.395-13.396zm-4.191 6.414c-.781.781-2.046.781-2.829.001-.781-.783-.781-2.048 0-2.829.782-.782 2.048-.781 2.829-.001.782.782.781 2.047 0 2.829z"/>
+  
+  </svg>
+
+  </span>
+  <span class='screen-reader'>Tags: </span><a class='tag' href='/tags/ping'>Ping</a>, <a class='tag' href='/tags/programming'>Programming</a>, <a class='tag' href='/tags/networking'>Networking</a>, <a class='tag' href='/tags/game'>Game</a></div>
+
+    
+  
+</footer>
+
+
+  </article>
+
+  
+    
+
+  
+
+  
+    <div class='comments-container'>
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'julianmiller-ca';
+    var disqus_identifier = 'http:\/\/www.julianmiller.ca\/blog\/ping\/';
+    var disqus_title = 'Paddles in a Networked Game: A Real-Time Interactive Simulation';
+    var disqus_url = 'http:\/\/www.julianmiller.ca\/blog\/ping\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+  
+</main>
+
+    <footer id='footer' class='footer-container'>
+      <div class='footer'>
+        <div class='social'>
+          <nav aria-label='Social Menu'>
+  <ul class='social-menu'>
+  
+    
+    <li>
+      <a href='https://github.com/jrm780' target='_blank' rel='noopener'>
+        <span class='screen-reader'>Open Github account in new tab</span>
+        <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+  
+  </svg>
+
+      </a>
+    </li>
+    
+  
+    
+    <li>
+      <a href='https://www.linkedin.com/in/julian-miller-b1b92564' target='_blank' rel='noopener'>
+        <span class='screen-reader'>Open Linkedin account in new tab</span>
+        <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/>
+  
+  </svg>
+
+      </a>
+    </li>
+    
+  
+    
+    <li>
+      <a href='https://soundcloud.com/tresphunk' target='_blank' rel='noopener'>
+        <span class='screen-reader'>Open Soundcloud account in new tab</span>
+        <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M7 17.939h-1v-8.068c.308-.231.639-.429 1-.566v8.634zm3 0h1v-9.224c-.229.265-.443.548-.621.857l-.379-.184v8.551zm-2 0h1v-8.848c-.508-.079-.623-.05-1-.01v8.858zm-4 0h1v-7.02c-.312.458-.555.971-.692 1.535l-.308-.182v5.667zm-3-5.25c-.606.547-1 1.354-1 2.268 0 .914.394 1.721 1 2.268v-4.536zm18.879-.671c-.204-2.837-2.404-5.079-5.117-5.079-1.022 0-1.964.328-2.762.877v10.123h9.089c1.607 0 2.911-1.393 2.911-3.106 0-2.233-2.168-3.772-4.121-2.815zm-16.879-.027c-.302-.024-.526-.03-1 .122v5.689c.446.143.636.138 1 .138v-5.949z"/>
+  
+  </svg>
+
+      </a>
+    </li>
+    
+  
+    
+    <li>
+      <a href='https://stackoverflow.com/users/1339615' target='_blank' rel='noopener'>
+        <span class='screen-reader'>Open Stackoverflow account in new tab</span>
+        <svg class='icon' width="24" height="24" viewbox='0 0 24 24' aria-hidden='true'>
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M15 21h-10v-2h10v2zm6-11.665l-1.621-9.335-1.993.346 1.62 9.335 1.994-.346zm-5.964 6.937l-9.746-.975-.186 2.016 9.755.879.177-1.92zm.538-2.587l-9.276-2.608-.526 1.954 9.306 2.5.496-1.846zm1.204-2.413l-8.297-4.864-1.029 1.743 8.298 4.865 1.028-1.744zm1.866-1.467l-5.339-7.829-1.672 1.14 5.339 7.829 1.672-1.14zm-2.644 4.195v8h-12v-8h-2v10h16v-10h-2z"/>
+  
+  </svg>
+
+      </a>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+        </div>
+
+        <div class='copyright'>
+          
+  
+
+<p>
+  &copy; 2017 Julian Miller
+</p>
+
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src='/js/main.ddafc274.js'></script>
+  
+    <script src='/js/custom.js'></script>
+  
+
+</body>
+
+</html>
+

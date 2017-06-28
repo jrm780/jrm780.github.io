@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://www.julianmiller.ca/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/blog/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/about/</loc>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/blog/ping/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/categories/education/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/tags/game/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/tags/networking/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/page/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/tags/ping/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/tags/programming/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/categories/software/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.julianmiller.ca/tags/</loc>
+    <lastmod>2017-06-27T00:00:00+06:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Home on Julian Miller</title>
+    <link>http://www.julianmiller.ca/</link>
+    <description>Recent content in Home on Julian Miller</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Tue, 27 Jun 2017 00:00:00 +0600</lastBuildDate>
+    
+	<atom:link href="http://www.julianmiller.ca/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>About</title>
+      <link>http://www.julianmiller.ca/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.julianmiller.ca/about/</guid>
+      <description>Previously of Ubisoft and SiriusXM projects, I&amp;rsquo;m a software developer with a B.Sc. Honours in Computer Science who has loved problem-solving and writing code for as long as he can remember. This site is here to share some of my work, thoughts, and experiences with the world.</description>
+    </item>
+    
+    <item>
+      <title>Paddles in a Networked Game: A Real-Time Interactive Simulation</title>
+      <link>http://www.julianmiller.ca/blog/ping/</link>
+      <pubDate>Tue, 27 Jun 2017 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/ping/</guid>
+      <description>The contents of this article were originally written for a research paper several years ago. It is a general overview and implementation of common network programming techniques still heavily used in online video games.
+1. Introduction In this report, the fundamentals of a real-time interactive simulation consisting of multiple clients connected over a network are examined and implemented. Paddles in a Networked Game (Ping) is a tennis-like computer game in which two players each control a paddle at either end of the screen.</description>
+    </item>
+    
+  </channel>
+</rss>

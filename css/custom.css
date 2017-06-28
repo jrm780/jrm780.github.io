@@ -1,0 +1,10 @@
+/* Custom CSS */
+.entry-header:after, .entry-nav-links:before, .footer:before,
+.prev-entry~.next-entry:before, .site-header:after {
+    border-bottom: .11111em solid #00cc74;
+}
+
+.entry-content img {
+  display: block;
+  margin: 2em auto;
+}

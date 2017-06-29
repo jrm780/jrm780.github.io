@@ -10,12 +10,23 @@
     
     
     <item>
+      <title>Projects</title>
+      <link>http://www.julianmiller.ca/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.julianmiller.ca/projects/</guid>
+      <description>Watch Dogs 2 Developed by Ubisoft and released in November 2016, Watch Dogs 2 is an action-adventure video game set within a fictionalized version of the San Francisco Bay Area.  
+ Official Watch Dogs 2 Homepage  Open Broadcaster Software (OBS)  A free and open source program for video recording and live streaming on Windows, Mac, and Linux.
+ I developed and contributed a compressor/limiter audio filter to the project to add better native audio control.</description>
+    </item>
+    
+    <item>
       <title>About</title>
       <link>http://www.julianmiller.ca/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://www.julianmiller.ca/about/</guid>
-      <description>Previously of Ubisoft and SiriusXM projects, I&amp;rsquo;m a software developer with a B.Sc. Honours in Computer Science who has loved problem-solving and writing code for as long as he can remember. This site is here to share some of my work, thoughts, and experiences with the world.</description>
+      <description>Formerly of Ubisoft and SiriusXM projects, I&amp;rsquo;m a software developer with a B.Sc. Honours in Computer Science who has loved problem-solving and writing code for as long as he can remember. This site is here to share some of my work, thoughts, and experiences with the world.</description>
     </item>
     
   </channel>

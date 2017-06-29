@@ -20,5 +20,52 @@
 1. Introduction In this report, the fundamentals of a real-time interactive simulation consisting of multiple clients connected over a network are examined and implemented. Paddles in a Networked Game (Ping) is a tennis-like computer game in which two players each control a paddle at either end of the screen.</description>
     </item>
     
+    <item>
+      <title> Object Oriented Programming in C&#43;&#43;: Part 5 - Destructors</title>
+      <link>http://www.julianmiller.ca/blog/coop05/</link>
+      <pubDate>Sun, 23 Nov 2014 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/coop05/</guid>
+      <description>Part 5 in a series about object oriented programming (OOP) in C++. A class’ destructor is a special method that is called automatically whenever an object is destroyed. They’re extremely important and are necessary to prevent memory leaks (newly allocated memory that is never deleted).
+  https://github.com/Julian-Miller/OOP/</description>
+    </item>
+    
+    <item>
+      <title> Object Oriented Programming in C&#43;&#43;: Part 4 - Polymorphism</title>
+      <link>http://www.julianmiller.ca/blog/coop04/</link>
+      <pubDate>Sat, 22 Nov 2014 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/coop04/</guid>
+      <description>Part 4 in a series about object oriented programming (OOP) in C++. The word polymorph literally means “many forms”. In software development, polymorphism allows us to use a common interface to perform different tasks. This means we can dynamically (i.e. at runtime through user input, files, etc.) change what our code does, without using large numbers of ‘if’ statements.
+  https://github.com/Julian-Miller/OOP/</description>
+    </item>
+    
+    <item>
+      <title> Object Oriented Programming in C&#43;&#43;: Part 3 - Abstraction and Inheritance</title>
+      <link>http://www.julianmiller.ca/blog/coop03/</link>
+      <pubDate>Wed, 20 Jun 2012 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/coop03/</guid>
+      <description>Part 3 in a series about object oriented programming (OOP) in C++. This video covers the basic information regarding abstraction and inheritance, which are arguably the most important aspects of object oriented programming. The idea of abstraction is to use a more general, or higher-level, definition of a class or function. We can then inherit attributes and methods from the general case, in order to create more specialized classes, without needing to redefine the attributes already specified in the base class.</description>
+    </item>
+    
+    <item>
+      <title> Object Oriented Programming in C&#43;&#43;: Part 2 - Encapsulation</title>
+      <link>http://www.julianmiller.ca/blog/coop02/</link>
+      <pubDate>Wed, 16 May 2012 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/coop02/</guid>
+      <description>Part 2 in a series about object oriented programming (OOP) in C++. This video covers the basic information regarding encapsulation and methods.</description>
+    </item>
+    
+    <item>
+      <title> Object Oriented Programming in C&#43;&#43;: Part 1 - Your first class</title>
+      <link>http://www.julianmiller.ca/blog/coop01/</link>
+      <pubDate>Wed, 25 Apr 2012 00:00:00 +0600</pubDate>
+      
+      <guid>http://www.julianmiller.ca/blog/coop01/</guid>
+      <description>Part 1 in a series about object oriented programming (OOP) in C++. This video covers the basic information regarding classes, constructors, and instantiation.</description>
+    </item>
+    
   </channel>
 </rss>

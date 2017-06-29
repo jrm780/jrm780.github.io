@@ -8,3 +8,18 @@
   display: block;
   margin: 2em auto;
 }
+
+.yt-embed {
+  position: relative;
+  width: 80%;
+  padding-bottom: 45%;
+  height: 0;
+  margin: 0 auto;
+  margin-bottom: 2em;
+}
+
+.yt-embed iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}

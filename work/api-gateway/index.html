@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TITLE — Julian Miller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/"><span>//</span> julian miller</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+
+
+  <div class="work-page">
+    <div class="work-inner">
+
+      <!-- Title -->
+      <h1 class="work-title">
+        Building a Self-Serve API Gateway to Decompose a Monolith
+      </h1>
+
+      <!-- One-liner -->
+      <p class="work-subtitle">
+        Designed and built a high-performance API gateway enabling incremental migration from a legacy monolith to 150+
+        independently owned services, handling ~2000 RPS with ~50ms p99 overhead and 99.99999% availability.
+      </p>
+
+      <!-- Context -->
+      <section class="work-section">
+        <h2>Context</h2>
+        <p>
+          This project focused on evolving a legacy Ruby on Rails monolith that powered a cloud provider control plane
+          into a service-oriented architecture. The monolith handled all user-facing and API traffic and had become
+          increasingly difficult to scale, deploy, and evolve across teams.
+        </p>
+
+        <p>
+          The system operated at high scale, serving all requests to customer-facing web and API endpoints. Reliability
+          and latency were critical, as the gateway sat directly in the request path for all control plane operations.
+        </p>
+
+        <p>
+          I worked as a staff engineer leading the design and implementation of a new API gateway that would enable
+          teams to extract and own services independently without disrupting existing traffic.
+        </p>
+      </section>
+
+      <!-- Problem -->
+      <section class="work-section">
+        <h2>Problem</h2>
+
+        <p>
+          The monolith had become a bottleneck for both scalability and team velocity. Deployments were high-risk,
+          ownership boundaries were unclear, and scaling specific functionality required scaling the entire application.
+        </p>
+
+        <p>
+          A key requirement was to incrementally migrate functionality out of the monolith without breaking existing
+          clients or introducing downtime. Existing solutions like traditional reverse proxies and load balancers did
+          not provide sufficient flexibility for dynamic routing, request/response transformation, and service-specific
+          logic.
+        </p>
+
+        <p>
+          At the same time, the gateway needed to operate in the critical path with strict requirements for latency,
+          availability, and correctness. It also had to support cross-cutting concerns such as authentication, rate
+          limiting, logging, and distributed tracing, all while remaining extensible for future use cases.
+        </p>
+      </section>
+
+      <!-- Goals -->
+      <section class="work-section">
+        <h2>Goals</h2>
+        <ul>
+          <li>Enable incremental decomposition of the monolith</li>
+          <li>Support self-serve onboarding of services</li>
+          <li>Maintain low latency in the critical path</li>
+          <li>Provide consistent auth, rate limiting, tracing</li>
+          <li>Prevent cascading failures</li>
+        </ul>
+      </section>
+
+      <!-- Architecture Diagram -->
+      <section class="work-section">
+        <h2>System Architecture</h2>
+        <div class="diagram">
+          <!-- D2 or Mermaid render here -->
+        </div>
+      </section>
+
+      <!-- Approach -->
+      <section class="work-section">
+        <h2>Approach</h2>
+        <p>
+          Instead of relying on existing proxy solutions, I designed a custom API gateway tailored to the system’s
+          needs. The core idea was to create a flexible request processing pipeline that allowed dynamic routing and
+          composable request/response transformations.
+        </p>
+
+        <p>
+          The gateway introduced a filter-based architecture, where “before” and “after” filters could be applied to
+          requests and responses. This enabled teams to define service-specific behavior while still leveraging shared
+          infrastructure for common concerns like authentication and observability.
+        </p>
+
+        <p>
+          A strong emphasis was placed on making the system self-serve, allowing teams to onboard new services without
+          requiring changes to the gateway core.
+        </p>
+      </section>
+
+      <!-- Request Flow Diagram -->
+      <section class="work-section">
+        <h2>Request Processing Pipeline</h2>
+        <div class="diagram">
+          <!-- pipeline diagram -->
+        </div>
+      </section>
+
+      <!-- Challenges -->
+      <section class="work-section">
+        <h2>Key Challenges</h2>
+
+        <div class="challenge">
+          <h3>Avoiding Authentication Bottlenecks</h3>
+          Problem:
+          Authentication and user metadata lookups were required for most requests, creating a risk of overwhelming
+          backing data stores during traffic spikes.
+
+          Solution:
+          Introduced request coalescing using Go’s singleflight pattern combined with aggressive caching. Identical
+          concurrent requests for the same authentication data were deduplicated, ensuring only one upstream call was
+          made.
+
+          Why it works:
+          This significantly reduced duplicate work under bursty traffic patterns, smoothing load on downstream systems
+          and improving latency.
+
+          Trade-off:
+          Slight increase in complexity and potential for stale cache data, mitigated through careful TTL tuning.
+        </div>
+
+        <div class="challenge">
+          <h3>Connection Management & TIME_WAIT</h3>
+          Problem:
+          High request volume led to rapid connection churn, causing large numbers of TCP connections to enter
+          TIME_WAIT, eventually exhausting the ephemeral port range.
+
+          Solution:
+          Optimized connection reuse through persistent connections and tuned idle connection pools. Reduced unnecessary
+          connection teardown and ensured efficient reuse of existing connections.
+
+          Why it works:
+          Minimizing connection churn reduces pressure on the OS networking stack and avoids port exhaustion, improving
+          overall system stability.
+
+          Trade-off:
+          Required careful tuning of idle timeouts and connection limits to avoid resource leaks.
+        </div>
+
+        <!-- Connection Diagram -->
+        <div class="diagram">
+          <!-- connection diagram -->
+        </div>
+
+        <div class="challenge">
+          <h3>Resilience & Failover</h3>
+          Problem:
+          Failures in downstream services or regions could propagate and degrade the entire system.
+
+          Solution:
+          Implemented circuit breakers, retries with exponential backoff and jitter, and regional failover mechanisms.
+
+          Why it works:
+          These mechanisms isolate failures and reduce amplification effects, maintaining overall system availability.
+        </div>
+
+        <!-- Resilience Diagram -->
+        <div class="diagram">
+          <!-- failover diagram -->
+        </div>
+
+      </section>
+
+      <!-- Results -->
+      <section class="work-section">
+        <h2>Results & Impact</h2>
+        <ul class="metrics">
+          <li><strong>~2000 RPS</strong> sustained throughput</li>
+          <li><strong>~50ms p99</strong> latency overhead</li>
+          <li><strong>99.99999%</strong> availability</li>
+          <li><strong>150+ services</strong> onboarded</li>
+        </ul>
+      </section>
+
+      <!-- Grafana -->
+      <section class="work-section">
+        <h2>Observability</h2>
+
+        <div class="image-block">
+          <img src="/images/grafana-latency.png" />
+          <p class="caption">Gateway latency remained stable at ~50ms p99 under load.</p>
+        </div>
+
+        <div class="image-block">
+          <img src="/images/grafana-rps.png" />
+          <p class="caption">Sustained throughput of ~2000 requests per second.</p>
+        </div>
+
+      </section>
+
+      <!-- Contributions -->
+      <section class="work-section">
+        <h2>My Contributions</h2>
+        <ul>
+          <li>Led end-to-end architecture and design</li>
+          <li>Built routing and filter pipeline</li>
+          <li>Designed self-serve service onboarding</li>
+          <li>Implemented caching and request coalescing</li>
+          <li>Resolved connection-level scaling issues</li>
+          <li>Introduced resilience patterns</li>
+        </ul>
+      </section>
+
+      <!-- Lessons -->
+      <section class="work-section">
+        <h2>Lessons Learned</h2>
+        <p>
+          Balancing flexibility with guardrails was critical...
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/jrm780">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg">what i listen to</a>
+    </p>
+  </footer>
+
+  <script>
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+  </script>
+
+</body>
+
+</html>

@@ -16,7 +16,7 @@
 <body>
 
   <nav>
-    <div class="nav-logo"><span>//</span> julian miller</div>
+    <a class="nav-logo" href="/" onclick="showPage('home'); return false;"><span>//</span> julian miller</a>
     <ul class="nav-links">
       <li><a href="/" onclick="showPage('home'); return false;">Home</a></li>
       <li><a href="/about" onclick="showPage('about'); return false;">About</a></li>
@@ -321,6 +321,7 @@
           home.classList.add('hidden');
           about.classList.add('active');
           nav.classList.add('scrolled');
+          window.scrollTo({ top: 0, behavior: 'instant' });
         } else {
           about.classList.remove('active');
           home.classList.remove('hidden');

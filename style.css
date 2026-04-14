@@ -104,6 +104,8 @@ nav.scrolled {
     font-weight: 400;
     color: var(--text);
     letter-spacing: .04em;
+    text-decoration: none;
+    cursor: pointer;
 }
 .nav-logo span { color: var(--accent); }
 

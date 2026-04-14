@@ -652,3 +652,9 @@ footer a:hover { color: var(--accent); }
     color: var(--text-muted);
     margin-top: 0.5rem;
 }
+
+.diagram svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}

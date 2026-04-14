@@ -49,12 +49,22 @@ Automatic mappings:
 
 Dependencies: markdown, beautifulsoup4
     pip install markdown beautifulsoup4
+
+D2 diagrams:
+    ```diagram blocks are rendered to SVG using the d2 CLI if it is installed.
+    Install d2: https://d2lang.com/tour/install
+    If d2 is not found, a placeholder div is emitted instead.
 """
 
 import argparse
+import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
+from typing import Optional
 
 try:
     from markdown import Markdown
@@ -69,7 +79,7 @@ except ImportError:
 
 # ── Frontmatter ───────────────────────────────────────────────────────────────
 
-def parse_frontmatter(text: str) -> tuple[dict, str]:
+def parse_frontmatter(text: str) -> "tuple[dict, str]":
     """
     Split YAML-style frontmatter from the markdown body.
 
@@ -180,21 +190,81 @@ def wrap_challenges(soup: BeautifulSoup) -> None:
             section.append(div)
 
 
-def process_diagrams(soup: BeautifulSoup) -> None:
+def render_d2(source: str, theme: int = 200) -> Optional[str]:
+    """
+    Render a D2 diagram source string to an SVG string using the d2 CLI.
+
+    Uses a temp file pair so d2 can write a proper .svg output.
+    Returns the SVG string on success, or None if d2 is unavailable or fails.
+
+    Theme 200 is "Dark Mauve" — a good match for this site's dark palette.
+    """
+    if not shutil.which("d2"):
+        return None
+
+    tmp_in = tmp_out = None
+    try:
+        fd, tmp_in = tempfile.mkstemp(suffix=".d2")
+        with os.fdopen(fd, "w") as f:
+            f.write(source)
+        tmp_out = tmp_in.replace(".d2", ".svg")
+
+        result = subprocess.run(
+            ["d2", f"--theme={theme}", tmp_in, tmp_out],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            print(f"Warning: d2 failed: {result.stderr.strip()}", file=sys.stderr)
+            return None
+
+        return Path(tmp_out).read_text(encoding="utf-8")
+
+    except subprocess.TimeoutExpired:
+        print("Warning: d2 rendering timed out", file=sys.stderr)
+        return None
+    finally:
+        if tmp_in and os.path.exists(tmp_in):
+            os.unlink(tmp_in)
+        if tmp_out and os.path.exists(tmp_out):
+            os.unlink(tmp_out)
+
+
+def process_diagrams(soup: BeautifulSoup, d2_theme: int = 200) -> None:
     """
     Convert ```diagram fenced blocks to <div class="diagram">.
 
     Python-Markdown renders them as:
         <pre><code class="language-diagram">content</code></pre>
+
+    If the d2 CLI is available and the block contains non-empty, non-comment
+    content, the diagram is rendered to an inline SVG. Otherwise a placeholder
+    div is emitted with the raw source preserved as an HTML comment.
     """
     for pre in soup.find_all("pre"):
         code = pre.find("code", class_="language-diagram")
         if not code:
             continue
-        inner = code.decode_contents()
+
+        source = code.get_text()
         div = soup.new_tag("div", attrs={"class": "diagram"})
-        # Preserve the raw inner content (comments, etc.)
-        div.append(BeautifulSoup(inner, "html.parser"))
+
+        # Only attempt rendering if there's actual D2 source (not just a comment)
+        stripped = source.strip()
+        is_placeholder = not stripped or stripped.startswith("<!--")
+
+        if not is_placeholder:
+            svg = render_d2(stripped, theme=d2_theme)
+            if svg:
+                div.append(BeautifulSoup(svg, "html.parser"))
+                pre.replace_with(div)
+                continue
+            # d2 failed — fall through to placeholder
+
+        # Emit placeholder with source preserved as a comment for later use
+        comment_source = source.replace("--", "- -")  # HTML comments can't contain --
+        div.append(BeautifulSoup(f"<!-- d2 diagram source:\n{comment_source}\n-->", "html.parser"))
         pre.replace_with(div)
 
 
@@ -312,7 +382,7 @@ HTML_TEMPLATE = """\
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def convert(input_path: Path, output_dir: Path) -> Path:
+def convert(input_path: Path, output_dir: Path, d2_theme: int = 200) -> Path:
     text = input_path.read_text(encoding="utf-8")
 
     meta, body_text = parse_frontmatter(text)
@@ -326,7 +396,7 @@ def convert(input_path: Path, output_dir: Path) -> Path:
 
     # Post-process
     soup = BeautifulSoup(body_html, "html.parser")
-    process_diagrams(soup)
+    process_diagrams(soup, d2_theme=d2_theme)
     wrap_sections(soup)
     wrap_challenges(soup)
     process_images(soup)
@@ -364,6 +434,13 @@ def main() -> None:
         default="./work",
         help="Directory to write work/<slug>/index.html into (default: ./work)",
     )
+    parser.add_argument(
+        "--d2-theme",
+        type=int,
+        default=200,
+        metavar="N",
+        help="D2 theme ID to use when rendering diagrams (default: 200 = Dark Mauve)",
+    )
     args = parser.parse_args()
 
     input_path = Path(args.input)
@@ -373,7 +450,7 @@ def main() -> None:
         sys.exit(f"Error: expected a .md file, got: {input_path}")
 
     output_dir = Path(args.output_dir)
-    out_file = convert(input_path, output_dir)
+    out_file = convert(input_path, output_dir, d2_theme=args.d2_theme)
     print(f"Written: {out_file}")
 
 

@@ -40,7 +40,43 @@ limiting, logging, and distributed tracing, all while remaining extensible for f
 ## System Architecture
 
 ```diagram
-<!-- D2 or Mermaid render here -->
+direction: down
+
+clients: {
+  web: "Web App (cloud UI)"
+  api: "API Clients"
+}
+
+gateway: {
+  label: "API Gateway\n(Critical Path)\n~2000 RPS | ~50ms p99 | 99.99999% availability"
+
+  routing: "Routing Layer"
+  filters: "Filter Pipeline"
+  observability: "Logging / Metrics / Tracing"
+}
+
+services: {
+  label: "Backend Services (150+)"
+  s1: "Service A"
+  s2: "Service B"
+  s3: "Service C"
+}
+
+auth: "Auth Service"
+meta: "User Metadata Service"
+
+clients.web -> gateway
+clients.api -> gateway
+
+gateway -> services.s1
+gateway -> services.s2
+gateway -> services.s3
+
+gateway -> auth
+gateway -> meta
+
+gateway.routing -> gateway.filters
+gateway.filters -> gateway.observability
 ```
 
 ## Approach

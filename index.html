@@ -18,8 +18,8 @@
   <nav>
     <div class="nav-logo"><span>//</span> julian miller</div>
     <ul class="nav-links">
-      <li><a href="#" onclick="showPage('home'); return false;">Home</a></li>
-      <li><a href="#" onclick="showPage('about'); return false;">About</a></li>
+      <li><a href="/" onclick="showPage('home'); return false;">Home</a></li>
+      <li><a href="/about" onclick="showPage('about'); return false;">About</a></li>
     </ul>
   </nav>
 
@@ -306,26 +306,68 @@
   </footer>
 
   <script>
-    const nav = document.querySelector('nav');
+    (function () {
+      const nav = document.querySelector('nav');
 
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 10);
-    }, { passive: true });
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 10);
+      }, { passive: true });
 
-    function showPage(page) {
-      const home = document.getElementById('home-page');
-      const about = document.getElementById('about-page');
-      if (page === 'about') {
-        home.classList.add('hidden');
-        about.classList.add('active');
-        nav.classList.add('scrolled');
-      } else {
-        about.classList.remove('active');
-        home.classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => nav.classList.toggle('scrolled', window.scrollY > 10), 50);
+      // Pure DOM logic — does not touch URL
+      function applyPage(page) {
+        const home = document.getElementById('home-page');
+        const about = document.getElementById('about-page');
+        if (page === 'about') {
+          home.classList.add('hidden');
+          about.classList.add('active');
+          nav.classList.add('scrolled');
+        } else {
+          about.classList.remove('active');
+          home.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => nav.classList.toggle('scrolled', window.scrollY > 10), 50);
+        }
       }
-    }
+
+      // Called from nav onclick handlers — updates URL then applies view
+      window.showPage = function (page) {
+        history.pushState({ page }, '', page === 'about' ? '/about' : '/');
+        applyPage(page);
+      };
+
+      // Back / forward button
+      window.addEventListener('popstate', function (e) {
+        applyPage(e.state?.page ?? 'home');
+      });
+
+      // Initialize correct view on load
+      (function initRoute() {
+        const params = new URLSearchParams(window.location.search);
+        const redirectedPath = params.get('p');
+
+        if (redirectedPath) {
+          let path;
+          try { path = decodeURIComponent(redirectedPath); } catch { path = '/'; }
+
+          if (path.startsWith('/work/')) {
+            // Real page — hard redirect so GitHub Pages serves it (or gives a real 404)
+            window.location.replace(path);
+            return;
+          }
+
+          const page = path === '/about' || path === '/about/' ? 'about' : 'home';
+          history.replaceState({ page }, '', page === 'about' ? '/about' : '/');
+          applyPage(page);
+          return;
+        }
+
+        // Normal load — read path directly
+        const path = window.location.pathname;
+        const page = path === '/about' || path === '/about/' ? 'about' : 'home';
+        history.replaceState({ page }, '', window.location.href);
+        applyPage(page);
+      })();
+    })();
   </script>
 
 </body>

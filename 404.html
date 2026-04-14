@@ -1,1 +1,16 @@
-404 :)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Julian — Portfolio</title>
+  <script>
+    (function () {
+      var loc = window.location;
+      var encoded = encodeURIComponent(loc.pathname + loc.search + loc.hash);
+      loc.replace('/?p=' + encoded);
+    })();
+  </script>
+</head>
+<body></body>
+</html>

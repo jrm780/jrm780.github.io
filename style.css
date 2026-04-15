@@ -589,6 +589,40 @@ footer p + p { margin-top: .75rem; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Work subsections ────────────────────────────────────── */
+.work-subsection {
+    margin-bottom: 3.5rem;
+}
+
+.subsection-label {
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--text-muted);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Make anchor cards work cleanly */
+a.card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+a.card:hover {
+    color: inherit;
+    cursor: pointer;
+}
+
+/* OSS repo slug in mono */
+.oss-repo {
+    font-size: .62rem;
+    letter-spacing: .06em;
+    text-transform: none;
+}
+
 /* ─── Mobile ──────────────────────────────────────────── */
 @media (max-width: 500px) {
     .nav-links { gap: 1.5rem; }

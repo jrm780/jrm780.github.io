@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introducing RBAC to the DigitalOcean Platform — Julian Miller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/"><span>//</span> julian miller</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="work-page">
+    <div class="work-inner">
+
+      <h1 class="work-title">Introducing RBAC to the DigitalOcean Platform</h1>
+      <p class="work-subtitle">
+        Built the identity and access management infrastructure that introduced role-based access control across the DigitalOcean platform, sitting in the critical path of the control plane and serving billions of authorization decisions per day with sub-millisecond response times.
+      </p>
+
+      <section class="work-section">
+        <h2>Context</h2>
+        <p>
+          As DigitalOcean expanded its customer base to include larger teams and enterprises, the lack of fine-grained access control became a significant gap. Users needed a way to collaborate on infrastructure without sharing credentials or granting full account access — a foundational requirement for any serious cloud platform.
+        </p>
+        <p>
+          I worked as a staff engineer leading the design and implementation of IAM infrastructure that introduced RBAC (role-based access control) to the DigitalOcean control plane. This wasn't a greenfield service — it had to be woven into an existing platform serving millions of customers, without downtime and without breaking existing workflows.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Problem</h2>
+        <p>
+          DigitalOcean's existing authorization model was coarse-grained: you either had full access to an account or you didn't. As teams grew and compliance requirements tightened, this became untenable. Customers needed to grant team members access to specific resources and actions — and revoke it reliably.
+        </p>
+        <p>
+          The new IAM system had to integrate deeply with the existing control plane. Every API request and UI action flowing through the platform needed to pass through authorization checks. Latency was non-negotiable — adding even a few milliseconds to every request would have a compounding effect at scale.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Goals</h2>
+        <ul>
+          <li>Introduce role-based access control across all DigitalOcean products</li>
+          <li>Sub-millisecond authorization decision latency</li>
+          <li>Seamless integration with existing API and control plane flows</li>
+          <li>Backwards compatibility — no disruption to existing customers</li>
+          <li>Audit logging for all access decisions</li>
+          <li>Self-serve team and permissions management via the UI and API</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>Approach</h2>
+        <p>
+          The authorization engine was built as a dedicated gRPC service, deployed independently and accessed by every component in the control plane that needed to make access decisions. The design prioritized read performance — the vast majority of operations are authorization checks, not writes.
+        </p>
+        <p>
+          Permission data was structured to allow efficient lookups by subject (user or token), resource, and action. Aggressive caching at multiple layers — both within the authorization service and in calling services — kept the hot path sub-millisecond. Cache invalidation was driven by event streams to ensure consistency without sacrificing performance.
+        </p>
+        <p>
+          Backwards compatibility was handled by treating existing full-access accounts as implicitly holding a root-level role. This meant the new system could be deployed incrementally without requiring customers to migrate or reconfigure anything.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Key Challenges</h2>
+        <div class="challenge">
+          <h3>Latency in the Critical Path</h3>
+          <p>
+            Problem: Authorization checks were required for virtually every API request. Any latency regression would ripple across the entire platform.
+          </p>
+          <p>
+            Solution: Combined in-process caching in calling services with a high-performance gRPC authorization service. Cache TTLs were tuned aggressively, and invalidation was event-driven rather than poll-based to keep data fresh without sacrificing speed.
+          </p>
+          <p>
+            Trade-off: Short window of potential staleness on permission changes, mitigated by event-driven invalidation with bounded lag.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Backwards Compatibility at Scale</h3>
+          <p>
+            Problem: Millions of existing customers relied on implicit full-account access. Any change to the authorization model risked breaking existing integrations.
+          </p>
+          <p>
+            Solution: Modeled existing access patterns as implicit roles, allowing the new RBAC system to be the single source of truth without requiring a migration. New capabilities were additive — customers opted in to fine-grained control at their own pace.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Audit Logging Without Overhead</h3>
+          <p>
+            Problem: Recording every authorization decision at billions of decisions per day risked becoming a write bottleneck.
+          </p>
+          <p>
+            Solution: Audit events were published asynchronously to Kafka, decoupling the decision path from the logging path entirely. Consumers downstream handled persistence and indexing.
+          </p>
+        </div>
+      </section>
+
+      <section class="work-section">
+        <h2>Results &amp; Impact</h2>
+        <ul class="metrics">
+          <li><strong>Billions</strong> of authorization decisions per day</li>
+          <li><strong>&lt;1ms</strong> p99 decision latency</li>
+          <li>RBAC adopted across <strong>all DigitalOcean products</strong></li>
+          <li>Unblocked <strong>enterprise sales</strong> requiring team-based access control</li>
+          <li>Zero downtime migration for <strong>millions of existing customers</strong></li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>My Contributions</h2>
+        <ul>
+          <li>Led architecture and design of the IAM system</li>
+          <li>Built the authorization engine and gRPC service</li>
+          <li>Designed the permission model and caching strategy</li>
+          <li>Implemented event-driven cache invalidation</li>
+          <li>Coordinated integration across platform teams</li>
+          <li>Drove the backwards-compatible migration strategy</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>Lessons Learned</h2>
+        <p>
+          The hardest part of IAM isn't the authorization logic — it's the data model. Getting the resource hierarchy and action space right early matters enormously, because changing them later requires migrating permissions data in production. Investing in a clean, extensible model upfront paid significant dividends as new products were onboarded.
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/jrm780" target="_blank" rel="noopener">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian" target="_blank" rel="noopener">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg" target="_blank" rel="noopener">what i listen to</a> &nbsp;·&nbsp;
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
+    </p>
+    <p>&copy; <span id="copyright-year"></span> Julian Miller</p>
+  </footer>
+
+  <script>
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+  </script>
+
+</body>
+
+</html>

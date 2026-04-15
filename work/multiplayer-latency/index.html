@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealing with Latency in Real-Time Online Multiplayer Games — Julian Miller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/"><span>//</span> julian miller</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="work-page">
+    <div class="work-inner">
+
+      <h1 class="work-title">Dealing with Latency in Real-Time Online Multiplayer Games</h1>
+      <p class="work-subtitle">
+        How I approached and solved the hard latency problems in real-time online multiplayer game development, shipping open-world cooperative and competitive modes to 10M+ players across Watch Dogs 2 and Watch Dogs: Legion.
+      </p>
+
+      <section class="work-section">
+        <h2>Context</h2>
+        <p>
+          Real-time multiplayer in open-world games is one of the harder problems in software engineering. Players across different continents need to share a coherent view of a dynamic, physics-driven world — and they need to feel like they're doing it together, even when their network connections are unreliable and their round-trip times vary wildly.
+        </p>
+        <p>
+          At Ubisoft, I led the design and implementation of the multiplayer networking systems for Watch Dogs 2 and Watch Dogs: Legion. This meant building drop-in cooperative and competitive multiplayer for open-world games with no loading screens, no lobbies, and no tolerance for the desync that makes networked games feel broken.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>The Core Problem</h2>
+        <p>
+          Network latency is a physical reality. Light traveling through fiber between New York and London takes ~35ms one-way. Real players often have 100–200ms round-trip times, sometimes much more. A game running at 60fps has a frame budget of ~16ms. The math doesn't work — you can't wait for network confirmation before rendering the next frame.
+        </p>
+        <p>
+          The challenge isn't eliminating latency. It's hiding it well enough that players don't notice, and handling the cases where the illusion breaks down gracefully.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Key Techniques</h2>
+        <div class="challenge">
+          <h3>Client-Side Prediction</h3>
+          <p>
+            Each client simulates the local player's actions immediately, without waiting for server confirmation. The server is authoritative, and corrections are applied when the server's version of events differs — but the local player never waits for a network round-trip before seeing their own input reflected.
+          </p>
+          <p>
+            The tricky part is reconciliation. When the server says "you were actually there, not here," the client has to smoothly correct without jarring the player. Getting this wrong produces the rubber-banding effect that makes networked games feel terrible.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Dead Reckoning and Entity Interpolation</h3>
+          <p>
+            Remote players' positions arrive in discrete snapshots — we don't receive a position update every frame. Between updates, the client extrapolates where a remote player probably is based on their last known velocity and heading. When the next real update arrives, we interpolate smoothly toward the true position.
+          </p>
+          <p>
+            The challenge is choosing the right interpolation delay. Too short and the movement is jittery because we're running out of buffer. Too long and remote players feel laggy and unresponsive to dodge.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Authoritative Game State and Anti-Cheat</h3>
+          <p>
+            For competitive modes, client-side prediction opens the door to cheating — a client can lie about where it is or what it did. The server needed to be authoritative without becoming a bottleneck.
+          </p>
+          <p>
+            I built a scoring arbitration system for Watch Dogs 2's competitive multiplayer that validated player actions server-side using a replay of client-reported inputs against the server's physics simulation. Actions that were physically impossible — teleporting, unhittable accuracy — were rejected. This eliminated a whole class of cheats without adding perceptible latency to legitimate play.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Drop-In Multiplayer in an Open World</h3>
+          <p>
+            Watch Dogs 2 and Legion had no lobbies. A player could seamlessly appear in your world mid-session — your car chase continues, they just appear. This required a fast, reliable world state synchronization handshake that could bring a new player up to speed in the background without stuttering the game for either party.
+          </p>
+          <p>
+            The handshake serialized and streamed the relevant world state — player positions, vehicle states, mission progress, NPC positions — prioritized by proximity and relevance. Lower-priority entities caught up after the initial join.
+          </p>
+        </div>
+      </section>
+
+      <section class="work-section">
+        <h2>Results &amp; Impact</h2>
+        <ul class="metrics">
+          <li><strong>10M+</strong> copies sold across Watch Dogs 2 and Watch Dogs: Legion</li>
+          <li>Drop-in multiplayer with <strong>no loading screens</strong> across open-world sessions</li>
+          <li>Smooth cooperative play at <strong>100–200ms RTT</strong></li>
+          <li>Server-side scoring arbitration eliminating position and accuracy cheats</li>
+          <li>State sync handshake completing in <strong>under 2 seconds</strong> for typical sessions</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>My Contributions</h2>
+        <ul>
+          <li>Led design of the multiplayer networking architecture for both titles</li>
+          <li>Built client-side prediction and server reconciliation systems</li>
+          <li>Designed and implemented drop-in world state synchronization</li>
+          <li>Built scoring arbitration and server-side cheat detection for competitive modes</li>
+          <li>Tuned interpolation and extrapolation parameters for feel across network conditions</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>Lessons Learned</h2>
+        <p>
+          The best multiplayer netcode is invisible. When it's working, players think the game just feels good — they don't think about the network at all. The goal is always to make the worst-case feel acceptable, not to make the best-case feel perfect.
+        </p>
+        <p>
+          The other lesson: test on bad networks deliberately. Setting up network simulation with packet loss, jitter, and high latency as part of the regular development loop surfaced bugs that would otherwise only appear in production with real players on real connections. The cases where the illusion breaks are exactly the cases you don't see in the office.
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/jrm780" target="_blank" rel="noopener">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian" target="_blank" rel="noopener">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg" target="_blank" rel="noopener">what i listen to</a> &nbsp;·&nbsp;
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
+    </p>
+    <p>&copy; <span id="copyright-year"></span> Julian Miller</p>
+  </footer>
+
+  <script>
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+  </script>
+
+</body>
+
+</html>

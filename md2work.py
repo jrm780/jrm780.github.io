@@ -72,7 +72,9 @@ except ImportError:
     sys.exit("Missing dependency: pip install markdown")
 
 try:
-    from bs4 import BeautifulSoup, NavigableString, Tag
+    from bs4 import BeautifulSoup, NavigableString, Tag, XMLParsedAsHTMLWarning
+    import warnings
+    warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 except ImportError:
     sys.exit("Missing dependency: pip install beautifulsoup4")
 
@@ -363,11 +365,15 @@ HTML_TEMPLATE = """\
     <p>
       <a href="https://github.com/jrm780">github</a> &nbsp;·&nbsp;
       <a href="https://www.linkedin.com/in/miller-julian">linkedin</a> &nbsp;·&nbsp;
-      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg">what i listen to</a>
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg">what i listen to</a> &nbsp;·&nbsp;
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
     </p>
+    <p>&copy; <span id="copyright-year"></span> Julian Miller</p>
   </footer>
 
   <script>
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
     const nav = document.querySelector('nav');
     window.addEventListener('scroll', () => {{
       nav.classList.toggle('scrolled', window.scrollY > 10);

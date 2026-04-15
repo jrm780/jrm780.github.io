@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "python3 -m http.server $PORT"],
+      "port": 3001,
+      "autoPort": true
+    }
+  ]
+}

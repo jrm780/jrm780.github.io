@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building a Low-Latency Feature Management Platform at DigitalOcean — Julian Miller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/"><span>//</span> julian miller</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="work-page">
+    <div class="work-inner">
+
+      <h1 class="work-title">Building a Low-Latency Feature Management Platform at DigitalOcean</h1>
+      <p class="work-subtitle">
+        Designed and built an in-house feature flag system enabling safe feature rollouts and A/B testing across the DigitalOcean platform, serving billions of evaluation requests per day with sub-millisecond response times.
+      </p>
+
+      <section class="work-section">
+        <h2>Context</h2>
+        <p>
+          As DigitalOcean's engineering organization grew, the need for safe, incremental feature rollouts became critical. Teams needed a way to gate new functionality behind flags — controlling exposure by user, team, region, or arbitrary percentage — without deploying separate code paths or coordinating risky big-bang releases.
+        </p>
+        <p>
+          I led the design and implementation of an in-house feature management platform built to serve this need at DigitalOcean's scale: billions of flag evaluations per day, with the latency bar of an infrastructure system sitting in the hot path of user-facing requests.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Problem</h2>
+        <p>
+          Off-the-shelf feature flag solutions either couldn't meet the latency requirements or introduced unacceptable vendor dependencies for a system this critical. Existing internal tooling was ad-hoc, inconsistent across teams, and had no support for targeting rules, gradual rollouts, or experimentation.
+        </p>
+        <p>
+          The system needed to be blazing fast — flag evaluation had to add effectively zero overhead to request paths. It also needed to support rich targeting (user ID, team, plan type, geography, arbitrary metadata), percentage-based rollouts, and real-time flag updates without service restarts.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Goals</h2>
+        <ul>
+          <li>Sub-millisecond p99 flag evaluation latency</li>
+          <li>Support for rich targeting rules and gradual rollouts</li>
+          <li>Real-time flag updates without restarts or re-deploys</li>
+          <li>A/B testing support with consistent assignment</li>
+          <li>Simple SDK for service teams to integrate</li>
+          <li>High availability — no single point of failure</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>Approach</h2>
+        <p>
+          The core design kept flag evaluation entirely in-process. Each service embedded a lightweight SDK that maintained a local, fully-evaluated copy of all flag rules in memory. This meant flag checks were pure in-memory lookups — no network hop, no database query.
+        </p>
+        <p>
+          Flag configurations were distributed via a push model backed by gRPC streaming. A central control plane streamed flag state changes to all connected SDK instances in real time, keeping local caches fresh with minimal lag. Redis served as the durable backing store and fan-out layer.
+        </p>
+        <p>
+          Consistent hashing was used to ensure stable assignment for percentage rollouts — the same user always ended up in the same bucket, making A/B test results reproducible and preventing flickering.
+        </p>
+      </section>
+
+      <section class="work-section">
+        <h2>Key Challenges</h2>
+        <div class="challenge">
+          <h3>Cold Start and Cache Warm-Up</h3>
+          <p>
+            Problem: On service startup, the in-memory cache was empty. Flag evaluations before the cache was populated could return incorrect defaults, potentially blocking user traffic.
+          </p>
+          <p>
+            Solution: The SDK blocked on initial flag load during startup, with a configurable timeout and a fallback to a locally persisted snapshot. This ensured services never started serving traffic with a cold cache.
+          </p>
+          <p>
+            Trade-off: Slightly slower cold starts, but correct behavior guaranteed from the first request.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Real-Time Propagation at Scale</h3>
+          <p>
+            Problem: Pushing flag updates to thousands of connected SDK instances simultaneously risked thundering-herd patterns on the control plane and backing store.
+          </p>
+          <p>
+            Solution: Used a tiered fan-out model with Redis pub/sub handling the initial broadcast and SDK instances reconnecting with jittered backoff on disruption. Control plane instances were stateless and horizontally scalable.
+          </p>
+        </div>
+        <div class="challenge">
+          <h3>Consistent Assignment for A/B Testing</h3>
+          <p>
+            Problem: Percentage-based rollouts needed to be sticky — the same user should always see the same variant, even across different services and restarts.
+          </p>
+          <p>
+            Solution: Deterministic consistent hashing over a composite key (flag ID + user ID) ensured stable, reproducible bucket assignment with no external state required.
+          </p>
+        </div>
+      </section>
+
+      <section class="work-section">
+        <h2>Results &amp; Impact</h2>
+        <ul class="metrics">
+          <li><strong>Billions</strong> of flag evaluations per day</li>
+          <li><strong>&lt;1ms</strong> p99 evaluation latency</li>
+          <li><strong>Real-time</strong> propagation of flag updates across the fleet</li>
+          <li>Adopted by <strong>all engineering teams</strong> as the standard rollout mechanism</li>
+          <li>Enabled safe, incremental delivery across <strong>dozens of major features</strong></li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>My Contributions</h2>
+        <ul>
+          <li>Led end-to-end architecture and design</li>
+          <li>Built the control plane and flag evaluation engine</li>
+          <li>Designed the SDK and client integration model</li>
+          <li>Implemented consistent hashing for A/B assignment</li>
+          <li>Built the real-time push infrastructure and fan-out layer</li>
+          <li>Drove adoption across engineering teams</li>
+        </ul>
+      </section>
+
+      <section class="work-section">
+        <h2>Lessons Learned</h2>
+        <p>
+          Keeping evaluation in-process was the right call — it gave us latency guarantees no network-based system could match. The harder problem turned out to be operational: flag hygiene. As adoption grew, the number of stale and redundant flags accumulated quickly. Building tooling to surface and clean up unused flags became as important as the evaluation engine itself.
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/jrm780" target="_blank" rel="noopener">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian" target="_blank" rel="noopener">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg" target="_blank" rel="noopener">what i listen to</a> &nbsp;·&nbsp;
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
+    </p>
+    <p>&copy; <span id="copyright-year"></span> Julian Miller</p>
+  </footer>
+
+  <script>
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+  </script>
+
+</body>
+
+</html>

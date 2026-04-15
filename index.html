@@ -43,150 +43,123 @@
         <p class="section-desc">A handful of projects spanning games, tools, and infrastructure.</p>
       </div>
 
-      <div class="projects-grid">
+      <div class="work-subsection">
+        <p class="subsection-label">Case studies</p>
+        <div class="projects-grid">
 
-        <div class="card cat-infra">
-          <div class="card-meta">Infrastructure · DigitalOcean</div>
-          <div class="card-title">Feature Management Platform</div>
-          <p class="card-desc">Built an in-house feature flag system for new feature rollouts and A/B testing UX
-            changes, serving billions of requests every day with sub-millisecond response times.</p>
-          <div class="card-tags">
-            <span class="tag">Go</span>
-            <span class="tag">gRPC</span>
-            <span class="tag">Redis</span>
-            <span class="tag">Kubernetes</span>
-          </div>
-          <a href="#" class="card-link">Read about it</a>
+          <a class="card cat-infra" href="#">
+            <div class="card-meta">Infrastructure · DigitalOcean</div>
+            <div class="card-title">Feature Management Platform</div>
+            <p class="card-desc">Built a low-latency, in-house feature flag system for new feature rollouts and A/B
+              testing, serving billions of requests every day with sub-millisecond response times.</p>
+            <div class="card-tags">
+              <span class="tag">Go</span>
+              <span class="tag">gRPC</span>
+              <span class="tag">Redis</span>
+              <span class="tag">Kubernetes</span>
+            </div>
+            <span class="card-link">Read case study</span>
+          </a>
+
+          <a class="card cat-infra" href="#">
+            <div class="card-meta">Infrastructure · DigitalOcean</div>
+            <div class="card-title">Self-Serve API Gateway</div>
+            <p class="card-desc">Designed and built a high-performance API gateway enabling incremental migration from a
+              legacy monolith to 150+ independently owned services with 99.99999% availability.</p>
+            <div class="card-tags">
+              <span class="tag">Go</span>
+              <span class="tag">HAProxy</span>
+              <span class="tag">WebSockets</span>
+              <span class="tag">Redis</span>
+              <span class="tag">Kafka</span>
+            </div>
+            <span class="card-link">Read case study</span>
+          </a>
+
+          <a class="card cat-infra" href="#">
+            <div class="card-meta">Infrastructure · DigitalOcean</div>
+            <div class="card-title">Identity and Access Management Infrastructure</div>
+            <p class="card-desc">Introduced RBAC to the DigitalOcean platform — IAM infrastructure in the critical
+              path of the control plane, serving billions of requests daily with sub-millisecond response times.</p>
+            <div class="card-tags">
+              <span class="tag">Go</span>
+              <span class="tag">gRPC</span>
+              <span class="tag">MySQL</span>
+              <span class="tag">RBAC</span>
+            </div>
+            <span class="card-link">Read case study</span>
+          </a>
+
+          <a class="card cat-game" href="#">
+            <div class="card-meta">Games · Ubisoft</div>
+            <div class="card-title">Latency in Real-Time Online Multiplayer Games</div>
+            <p class="card-desc">How to approach and solve the hard latency problems in real-time online multiplayer
+              games, working on titles shipped to 10M+ players across multiple platforms.</p>
+            <div class="card-tags">
+              <span class="tag">C++</span>
+              <span class="tag">Networking</span>
+              <span class="tag">UDP</span>
+              <span class="tag">State Sync</span>
+            </div>
+            <span class="card-link">Read case study</span>
+          </a>
+
         </div>
+      </div>
 
-        <div class="card cat-infra">
-          <div class="card-meta">Infrastructure · DigitalOcean</div>
-          <div class="card-title">API Gateway</div>
-          <p class="card-desc">Built and maintained DigitalOcean's API gateway services, which load-balance,
-            authenticate, rate-limit, and route every inbound HTTP request to the DO API and Control Panel.</p>
-          <div class="card-tags">
-            <span class="tag">Go</span>
-            <span class="tag">HAProxy</span>
-            <span class="tag">WebSockets</span>
-            <span class="tag">Redis</span>
-            <span class="tag">Kafka</span>
-          </div>
-          <a href="https://docs.digitalocean.com/reference/api/" class="card-link">DigitalOcean API reference</a>
+      <div class="work-subsection">
+        <p class="subsection-label">Open source</p>
+        <div class="projects-grid">
+
+          <a class="card cat-oss" href="https://github.com/obsproject/obs-studio" target="_blank" rel="noopener">
+            <div class="card-meta oss-repo">obsproject / obs-studio</div>
+            <div class="card-title">Open Broadcaster Software</div>
+            <p class="card-desc">Contributed a compressor/limiter audio filter to add better native dynamics control to
+              OBS, one of the most widely used open-source streaming and recording platforms.</p>
+            <div class="card-tags">
+              <span class="tag">C</span>
+              <span class="tag">C++</span>
+            </div>
+            <span class="card-link">View on GitHub</span>
+          </a>
+
+          <a class="card cat-oss" href="https://github.com/kubernetes/kubernetes" target="_blank" rel="noopener">
+            <div class="card-meta oss-repo">kubernetes / kubernetes</div>
+            <div class="card-title">Kubernetes</div>
+            <p class="card-desc">Contributed to the core Kubernetes project - the de facto standard for container
+              orchestration powering production workloads at scale across the industry - by fixing multiple deficiencies in the implementation of its HTTP-based lifecycle handlers.</p>
+            <div class="card-tags">
+              <span class="tag">Go</span>
+              <span class="tag">Kubernetes</span>
+            </div>
+            <span class="card-link">View on GitHub</span>
+          </a>
+
+          <a class="card cat-oss" href="https://github.com/digitalocean/terraform-provider-sendgrid" target="_blank" rel="noopener">
+            <div class="card-meta oss-repo">digitalocean / terraform-provider-sendgrid</div>
+            <div class="card-title">Terraform Provider — SendGrid</div>
+            <p class="card-desc">Built DigitalOcean's Terraform provider for SendGrid, enabling
+              infrastructure-as-code management of email delivery configuration.</p>
+            <div class="card-tags">
+              <span class="tag">Go</span>
+              <span class="tag">Terraform</span>
+            </div>
+            <span class="card-link">View on GitHub</span>
+          </a>
+
+          <a class="card cat-oss" href="https://github.com/digitalocean/droplet-1-clicks" target="_blank" rel="noopener">
+            <div class="card-meta oss-repo">digitalocean / droplet-1-clicks</div>
+            <div class="card-title">DigitalOcean 1-Click Apps</div>
+            <p class="card-desc">Added Kafka to DigitalOcean's 1-Click app marketplace for Droplets, making it faster
+              for developers to deploy popular software stacks on fresh infrastructure.</p>
+            <div class="card-tags">
+              <span class="tag">Shell</span>
+              <span class="tag">Cloud</span>
+            </div>
+            <span class="card-link">View on GitHub</span>
+          </a>
+
         </div>
-
-        <div class="card cat-infra">
-          <div class="card-meta">Infrastructure · DigitalOcean</div>
-          <div class="card-title">Identity and Access Management Infrastructure</div>
-          <p class="card-desc">Built IAM infrastructure that sits in the critical path of the DigitalOcean control
-            plane, serving billions of requests every day with sub-millisecond response times.</p>
-          <div class="card-tags">
-            <span class="tag">Go</span>
-            <span class="tag">gRPC</span>
-            <span class="tag">MySQL</span>
-            <span class="tag">RBAC</span>
-          </div>
-          <a href="https://www.digitalocean.com/products/identity-access-management" class="card-link">DigitalOcean IAM
-            Suite</a>
-        </div>
-
-        <div class="card cat-infra">
-          <div class="card-meta">Infrastructure · DigitalOcean</div>
-          <div class="card-title">MongoDB Managed Databases</div>
-          <p class="card-desc">Brought DigitalOcean's managed MongoDB product to multiple regions across the globe,
-            featuring automatic updates and point-in-time recovery.</p>
-          <div class="card-tags">
-            <span class="tag">Go</span>
-            <span class="tag">gRPC</span>
-            <span class="tag">Temporal</span>
-            <span class="tag">MongoDB</span>
-          </div>
-          <a href="https://www.digitalocean.com/products/managed-databases-mongodb" class="card-link">DigitalOcean
-            Managed MongoDB</a>
-        </div>
-
-        <div class="card cat-oss">
-          <div class="card-meta">Open Source</div>
-          <div class="card-title">Open Broadcaster Software | OBS</div>
-          <p class="card-desc">Developed and contributed a compressor/limiter audio filter to add better native audio
-            control to OBS, an open-source program for video recording and live streaming.</p>
-          <div class="card-tags">
-            <span class="tag">C</span>
-            <span class="tag">C++</span>
-            <span class="tag">Git</span>
-          </div>
-          <a href="https://github.com/obsproject/obs-studio" class="card-link">OBS on GitHub</a>
-        </div>
-
-        <div class="card cat-game">
-          <div class="card-meta">Games · Ubisoft</div>
-          <div class="card-title">Watch Dogs: Legion</div>
-          <p class="card-desc">Led the initial phase of free-roam cooperative multiplayer game state synchronization.
-            Over 10 million copies of the game have been sold across multiple platforms.</p>
-          <div class="card-tags">
-            <span class="tag">C++</span>
-            <span class="tag">C#</span>
-            <span class="tag">Python</span>
-            <span class="tag">AWS</span>
-            <span class="tag">Redis</span>
-          </div>
-          <a href="https://youtu.be/E_V-YQW3Gos" class="card-link">Watch trailer</a>
-        </div>
-
-        <div class="card cat-game">
-          <div class="card-meta">Games · Ubisoft</div>
-          <div class="card-title">Watch Dogs 2</div>
-          <p class="card-desc">Led design and implementation of open-world drop-in multiplayer and scoring arbitration
-            to prevent cheating. Since launch, over 10 million copies have been sold.</p>
-          <div class="card-tags">
-            <span class="tag">C++</span>
-            <span class="tag">C#</span>
-            <span class="tag">Python</span>
-            <span class="tag">AWS</span>
-            <span class="tag">Perforce</span>
-          </div>
-          <a href="https://youtu.be/hh9x4NqW0Dw" class="card-link">Watch trailer</a>
-        </div>
-
-        <div class="card cat-audio">
-          <div class="card-meta">Audio · SiriusXM</div>
-          <div class="card-title">SiriusXM Operations Platform</div>
-          <p class="card-desc">Developed streaming and operational infrastructure during a contract with SiriusXM:
-            low-latency audio pipelines and operational dashboards designed to serve millions of listeners.</p>
-          <div class="card-tags">
-            <span class="tag">Java</span>
-            <span class="tag">C++</span>
-          </div>
-          <a href="#" class="card-link">View project</a>
-        </div>
-
-        <div class="card cat-sci">
-          <div class="card-meta">Research · CERN collab</div>
-          <div class="card-title">Optics Metrology Software</div>
-          <p class="card-desc">Developed diffraction grating performance modeling software at a synchrotron facility
-            collaborating with CERN.</p>
-          <div class="card-tags">
-            <span class="tag">C++</span>
-            <span class="tag">IDL</span>
-            <span class="tag">PHP</span>
-            <span class="tag">Fortran</span>
-          </div>
-          <a href="https://www.lightsource.ca/" class="card-link">Canadian Light Source</a>
-        </div>
-
-        <div class="card cat-sci">
-          <div class="card-meta">Research · VIDO</div>
-          <div class="card-title">Bioinformatics LIMS</div>
-          <p class="card-desc">Developed a laboratory information management system for bioinformatics research carried
-            out by Maven Water & Environment and the Vaccine and Infectious Disease Organization (VIDO).</p>
-          <div class="card-tags">
-            <span class="tag">PHP</span>
-            <span class="tag">Python</span>
-            <span class="tag">HTML</span>
-            <span class="tag">CSS</span>
-          </div>
-          <a href="https://www.vido.org/" class="card-link">Vaccine and Infectious Disease Organization</a>
-        </div>
-
       </div>
     </section>
 
@@ -322,9 +295,9 @@
 
   <footer>
     <p>
-      <a href="https://github.com/jrm780">github</a> &nbsp;·&nbsp;
-      <a href="https://www.linkedin.com/in/miller-julian">linkedin</a> &nbsp;·&nbsp;
-      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg">what i listen to</a> &nbsp;·&nbsp;
+      <a href="https://github.com/jrm780" target="_blank" rel="noopener">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian" target="_blank" rel="noopener">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg" target="_blank" rel="noopener">what i listen to</a> &nbsp;·&nbsp;
       <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
     </p>
     <p>&copy; <span id="copyright-year"></span> Julian Miller</p>

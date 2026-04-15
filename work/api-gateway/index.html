@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building a Self-Serve API Gateway to Decompose a Monolith — Julian Miller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/"><span>//</span> julian miller</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="work-page">
+    <div class="work-inner">
+
+      <h1 class="work-title">Building a Self-Serve API Gateway to Decompose a Monolith</h1>
+      <p class="work-subtitle">
+        Designed and built a high-performance API gateway enabling incremental migration from a legacy monolith to 150+ independently owned services, handling ~2000 RPS with ~50ms p99 overhead and 99.99999% availability.
+      </p>
+
+<section class="work-section">
+ <h2>
+  Context
+ </h2>
+ <p>
+  This project focused on evolving a legacy Ruby on Rails monolith that powered a cloud provider control plane
+into a service-oriented architecture. The monolith handled all user-facing and API traffic and had become
+increasingly difficult to scale, deploy, and evolve across teams.
+ </p>
+ <p>
+  The system operated at high scale, serving all requests to customer-facing web and API endpoints. Reliability
+and latency were critical, as the gateway sat directly in the request path for all control plane operations.
+ </p>
+ <p>
+  I worked as a staff engineer leading the design and implementation of a new API gateway that would enable
+teams to extract and own services independently without disrupting existing traffic.
+ </p>
+</section>
+<section class="work-section">
+ <h2>
+  Problem
+ </h2>
+ <p>
+  The monolith had become a bottleneck for both scalability and team velocity. Deployments were high-risk,
+ownership boundaries were unclear, and scaling specific functionality required scaling the entire application.
+ </p>
+ <p>
+  A key requirement was to incrementally migrate functionality out of the monolith without breaking existing
+clients or introducing downtime. Existing solutions like traditional reverse proxies and load balancers did
+not provide sufficient flexibility for dynamic routing, request/response transformation, and service-specific
+logic.
+ </p>
+ <p>
+  At the same time, the gateway needed to operate in the critical path with strict requirements for latency,
+availability, and correctness. It also had to support cross-cutting concerns such as authentication, rate
+limiting, logging, and distributed tracing, all while remaining extensible for future use cases.
+ </p>
+</section>
+<section class="work-section">
+ <h2>
+  Goals
+ </h2>
+ <ul>
+  <li>
+   Enable incremental decomposition of the monolith
+  </li>
+  <li>
+   Support self-serve onboarding of services
+  </li>
+  <li>
+   Maintain low latency in the critical path
+  </li>
+  <li>
+   Provide consistent auth, rate limiting, tracing
+  </li>
+  <li>
+   Prevent cascading failures
+  </li>
+ </ul>
+</section>
+<section class="work-section">
+ <h2>
+  System Architecture
+ </h2>
+ <div class="diagram">
+  <?xml version="1.0" encoding="utf-8"?>
+  <svg data-d2-version="0.7.1" preserveaspectratio="xMinYMin meet" viewbox="0 0 1161 1232" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+   <svg class="d2-992459561 d2-svg" height="1232" viewbox="-91 -121 1161 1232" width="1161">
+    <rect class="fill-N7" fill="#1E1E2E" height="1232.000000" rx="0.000000" stroke-width="0" width="1161.000000" x="-91.000000" y="-121.000000">
+    </rect>
+    <style type="text/css">
+     <![CDATA[
+.d2-992459561 .text {
+	font-family: "d2-992459561-font-regular";
+}
+@font-face {
+	font-family: d2-992459561-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-992459561 .text-bold {
+	font-family: "d2-992459561-font-bold";
+}
+@font-face {
+	font-family: d2-992459561-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}]]>
+    </style>
+    <style type="text/css">
+     <![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-992459561 .fill-N1{fill:#CDD6F4;}
+		.d2-992459561 .fill-N2{fill:#BAC2DE;}
+		.d2-992459561 .fill-N3{fill:#A6ADC8;}
+		.d2-992459561 .fill-N4{fill:#585B70;}
+		.d2-992459561 .fill-N5{fill:#45475A;}
+		.d2-992459561 .fill-N6{fill:#313244;}
+		.d2-992459561 .fill-N7{fill:#1E1E2E;}
+		.d2-992459561 .fill-B1{fill:#CBA6f7;}
+		.d2-992459561 .fill-B2{fill:#CBA6f7;}
+		.d2-992459561 .fill-B3{fill:#6C7086;}
+		.d2-992459561 .fill-B4{fill:#585B70;}
+		.d2-992459561 .fill-B5{fill:#45475A;}
+		.d2-992459561 .fill-B6{fill:#313244;}
+		.d2-992459561 .fill-AA2{fill:#f38BA8;}
+		.d2-992459561 .fill-AA4{fill:#45475A;}
+		.d2-992459561 .fill-AA5{fill:#313244;}
+		.d2-992459561 .fill-AB4{fill:#45475A;}
+		.d2-992459561 .fill-AB5{fill:#313244;}
+		.d2-992459561 .stroke-N1{stroke:#CDD6F4;}
+		.d2-992459561 .stroke-N2{stroke:#BAC2DE;}
+		.d2-992459561 .stroke-N3{stroke:#A6ADC8;}
+		.d2-992459561 .stroke-N4{stroke:#585B70;}
+		.d2-992459561 .stroke-N5{stroke:#45475A;}
+		.d2-992459561 .stroke-N6{stroke:#313244;}
+		.d2-992459561 .stroke-N7{stroke:#1E1E2E;}
+		.d2-992459561 .stroke-B1{stroke:#CBA6f7;}
+		.d2-992459561 .stroke-B2{stroke:#CBA6f7;}
+		.d2-992459561 .stroke-B3{stroke:#6C7086;}
+		.d2-992459561 .stroke-B4{stroke:#585B70;}
+		.d2-992459561 .stroke-B5{stroke:#45475A;}
+		.d2-992459561 .stroke-B6{stroke:#313244;}
+		.d2-992459561 .stroke-AA2{stroke:#f38BA8;}
+		.d2-992459561 .stroke-AA4{stroke:#45475A;}
+		.d2-992459561 .stroke-AA5{stroke:#313244;}
+		.d2-992459561 .stroke-AB4{stroke:#45475A;}
+		.d2-992459561 .stroke-AB5{stroke:#313244;}
+		.d2-992459561 .background-color-N1{background-color:#CDD6F4;}
+		.d2-992459561 .background-color-N2{background-color:#BAC2DE;}
+		.d2-992459561 .background-color-N3{background-color:#A6ADC8;}
+		.d2-992459561 .background-color-N4{background-color:#585B70;}
+		.d2-992459561 .background-color-N5{background-color:#45475A;}
+		.d2-992459561 .background-color-N6{background-color:#313244;}
+		.d2-992459561 .background-color-N7{background-color:#1E1E2E;}
+		.d2-992459561 .background-color-B1{background-color:#CBA6f7;}
+		.d2-992459561 .background-color-B2{background-color:#CBA6f7;}
+		.d2-992459561 .background-color-B3{background-color:#6C7086;}
+		.d2-992459561 .background-color-B4{background-color:#585B70;}
+		.d2-992459561 .background-color-B5{background-color:#45475A;}
+		.d2-992459561 .background-color-B6{background-color:#313244;}
+		.d2-992459561 .background-color-AA2{background-color:#f38BA8;}
+		.d2-992459561 .background-color-AA4{background-color:#45475A;}
+		.d2-992459561 .background-color-AA5{background-color:#313244;}
+		.d2-992459561 .background-color-AB4{background-color:#45475A;}
+		.d2-992459561 .background-color-AB5{background-color:#313244;}
+		.d2-992459561 .color-N1{color:#CDD6F4;}
+		.d2-992459561 .color-N2{color:#BAC2DE;}
+		.d2-992459561 .color-N3{color:#A6ADC8;}
+		.d2-992459561 .color-N4{color:#585B70;}
+		.d2-992459561 .color-N5{color:#45475A;}
+		.d2-992459561 .color-N6{color:#313244;}
+		.d2-992459561 .color-N7{color:#1E1E2E;}
+		.d2-992459561 .color-B1{color:#CBA6f7;}
+		.d2-992459561 .color-B2{color:#CBA6f7;}
+		.d2-992459561 .color-B3{color:#6C7086;}
+		.d2-992459561 .color-B4{color:#585B70;}
+		.d2-992459561 .color-B5{color:#45475A;}
+		.d2-992459561 .color-B6{color:#313244;}
+		.d2-992459561 .color-AA2{color:#f38BA8;}
+		.d2-992459561 .color-AA4{color:#45475A;}
+		.d2-992459561 .color-AA5{color:#313244;}
+		.d2-992459561 .color-AB4{color:#45475A;}
+		.d2-992459561 .color-AB5{color:#313244;}.appendix text.text{fill:#CDD6F4}.md{--color-fg-default:#CDD6F4;--color-fg-muted:#BAC2DE;--color-fg-subtle:#A6ADC8;--color-canvas-default:#1E1E2E;--color-canvas-subtle:#313244;--color-border-default:#CBA6f7;--color-border-muted:#CBA6f7;--color-neutral-muted:#313244;--color-accent-fg:#CBA6f7;--color-accent-emphasis:#CBA6f7;--color-attention-subtle:#BAC2DE;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-B2{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-B3{fill:url(#streaks-dark-d2-992459561);mix-blend-mode:overlay}.sketch-overlay-B4{fill:url(#streaks-dark-d2-992459561);mix-blend-mode:overlay}.sketch-overlay-B5{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-B6{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-AA2{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-AA4{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-AA5{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-AB4{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-AB5{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-N1{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-N2{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-N3{fill:url(#streaks-normal-d2-992459561);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-dark-d2-992459561);mix-blend-mode:overlay}.sketch-overlay-N5{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-N6{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.sketch-overlay-N7{fill:url(#streaks-darker-d2-992459561);mix-blend-mode:lighten}.light-code{display: none}.dark-code{display: block}]]>
+    </style>
+    <g class="Y2xpZW50cw==">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B4" fill="#585B70" height="126.000000" stroke="#CBA6f7" style="stroke-width:2;" width="420.000000" x="213.000000" y="20.000000">
+      </rect>
+     </g>
+     <text class="text fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:28px" x="423.000000" y="7.000000">
+      clients
+     </text>
+    </g>
+    <g class="Z2F0ZXdheQ==">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B4" fill="#585B70" height="458.000000" stroke="#CBA6f7" style="stroke-width:2;" width="823.000000" x="65.000000" y="286.000000">
+      </rect>
+     </g>
+     <text class="text fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:28px" x="476.500000" y="217.000000">
+      <tspan dy="0.000000" x="476.500000">
+       API Gateway
+      </tspan>
+      <tspan dy="30.666667" x="476.500000">
+       (Critical Path)
+      </tspan>
+      <tspan dy="30.666667" x="476.500000">
+       ~2000 RPS | ~50ms p99 | 99.99999% availability
+      </tspan>
+     </text>
+    </g>
+    <g class="c2VydmljZXM=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B4" fill="#585B70" height="126.000000" stroke="#CBA6f7" style="stroke-width:2;" width="512.000000" x="10.000000" y="884.000000">
+      </rect>
+     </g>
+     <text class="text fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:28px" x="266.000000" y="871.000000">
+      Backend Services (150+)
+     </text>
+    </g>
+    <g class="YXV0aA==">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B6" fill="#313244" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="135.000000" x="572.000000" y="914.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="639.500000" y="952.500000">
+      Auth Service
+     </text>
+    </g>
+    <g class="bWV0YQ==">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B6" fill="#313244" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="202.000000" x="767.000000" y="914.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="868.000000" y="952.500000">
+      User Metadata Service
+     </text>
+    </g>
+    <g class="Y2xpZW50cy53ZWI=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="178.000000" x="243.000000" y="50.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="332.000000" y="88.500000">
+      Web App (cloud UI)
+     </text>
+    </g>
+    <g class="Y2xpZW50cy5hcGk=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="122.000000" x="481.000000" y="50.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="542.000000" y="88.500000">
+      API Clients
+     </text>
+    </g>
+    <g class="Z2F0ZXdheS5yb3V0aW5n">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="144.000000" x="365.000000" y="316.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="437.000000" y="354.500000">
+      Routing Layer
+     </text>
+    </g>
+    <g class="Z2F0ZXdheS5maWx0ZXJz">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="143.000000" x="366.000000" y="482.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="437.500000" y="520.500000">
+      Filter Pipeline
+     </text>
+    </g>
+    <g class="Z2F0ZXdheS5vYnNlcnZhYmlsaXR5">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="230.000000" x="322.000000" y="648.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="437.000000" y="686.500000">
+      Logging / Metrics / Tracing
+     </text>
+    </g>
+    <g class="c2VydmljZXMuczE=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="111.000000" x="40.000000" y="914.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="95.500000" y="952.500000">
+      Service A
+     </text>
+    </g>
+    <g class="c2VydmljZXMuczI=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="111.000000" x="211.000000" y="914.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="266.500000" y="952.500000">
+      Service B
+     </text>
+    </g>
+    <g class="c2VydmljZXMuczM=">
+     <g class="shape">
+      <rect class="stroke-B1 fill-B5" fill="#45475A" height="66.000000" stroke="#CBA6f7" style="stroke-width:2;" width="110.000000" x="382.000000" y="914.000000">
+      </rect>
+     </g>
+     <text class="text-bold fill-N1" fill="#CDD6F4" style="text-anchor:middle;font-size:16px" x="437.000000" y="952.500000">
+      Service C
+     </text>
+    </g>
+    <g class="KGNsaWVudHMud2ViIC0mZ3Q7IGdhdGV3YXkpWzBd">
+     <marker id="mk-d2-992459561-3488378134" markerheight="12.000000" markerunits="userSpaceOnUse" markerwidth="10.000000" orient="auto" refx="7.000000" refy="6.000000" viewbox="0.000000 0.000000 10.000000 12.000000">
+      <polygon class="connection fill-B1" fill="#CBA6f7" points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" stroke-width="2">
+      </polygon>
+     </marker>
+     <path class="connection stroke-B1" d="M 332.000000 118.000000 C 332.000000 156.000000 332.000000 170.600006 332.000000 185.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGNsaWVudHMuYXBpIC0mZ3Q7IGdhdGV3YXkpWzBd">
+     <path class="connection stroke-B1" d="M 542.000000 118.000000 C 542.000000 156.000000 542.000000 170.600006 542.000000 185.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGdhdGV3YXkgLSZndDsgc2VydmljZXMuczEpWzBd">
+     <path class="connection stroke-B1" d="M 95.500000 746.000000 C 95.500000 800.000000 95.500000 874.000000 95.500000 910.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGdhdGV3YXkgLSZndDsgc2VydmljZXMuczIpWzBd">
+     <path class="connection stroke-B1" d="M 266.500000 746.000000 C 266.500000 800.000000 266.500000 874.000000 266.500000 910.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGdhdGV3YXkgLSZndDsgc2VydmljZXMuczMpWzBd">
+     <path class="connection stroke-B1" d="M 437.000000 746.000000 C 437.000000 800.000000 437.000000 874.000000 437.000000 910.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGdhdGV3YXkgLSZndDsgYXV0aClbMF0=">
+     <path class="connection stroke-B1" d="M 639.500000 746.000000 C 639.500000 800.000000 639.500000 874.000000 639.500000 910.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="KGdhdGV3YXkgLSZndDsgbWV0YSlbMF0=">
+     <path class="connection stroke-B1" d="M 868.000000 746.000000 C 868.000000 800.000000 868.000000 874.000000 868.000000 910.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="Z2F0ZXdheS4ocm91dGluZyAtJmd0OyBmaWx0ZXJzKVswXQ==">
+     <path class="connection stroke-B1" d="M 437.000000 384.000000 C 437.000000 422.000000 437.000000 442.000000 437.000000 478.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <g class="Z2F0ZXdheS4oZmlsdGVycyAtJmd0OyBvYnNlcnZhYmlsaXR5KVswXQ==">
+     <path class="connection stroke-B1" d="M 437.000000 550.000000 C 437.000000 588.000000 437.000000 608.000000 437.000000 644.000000" fill="none" marker-end="url(#mk-d2-992459561-3488378134)" mask="url(#d2-992459561)" stroke="#CBA6f7" style="stroke-width:2;">
+     </path>
+    </g>
+    <mask height="1232" id="d2-992459561" maskunits="userSpaceOnUse" width="1161" x="-91" y="-121">
+     <rect fill="white" height="1232" width="1161" x="-91" y="-121">
+     </rect>
+    </mask>
+   </svg>
+  </svg>
+ </div>
+</section>
+<section class="work-section">
+ <h2>
+  Approach
+ </h2>
+ <p>
+  Instead of relying on existing proxy solutions, I designed a custom API gateway tailored to the system's
+needs. The core idea was to create a flexible request processing pipeline that allowed dynamic routing and
+composable request/response transformations.
+ </p>
+ <p>
+  The gateway introduced a filter-based architecture, where "before" and "after" filters could be applied to
+requests and responses. This enabled teams to define service-specific behavior while still leveraging shared
+infrastructure for common concerns like authentication and observability.
+ </p>
+ <p>
+  A strong emphasis was placed on making the system self-serve, allowing teams to onboard new services without
+requiring changes to the gateway core.
+ </p>
+</section>
+<section class="work-section">
+ <h2>
+  Request Processing Pipeline
+ </h2>
+ <div class="diagram">
+  <!-- d2 diagram source:
+<!- - pipeline diagram - ->
+
+-->
+ </div>
+</section>
+<section class="work-section">
+ <h2>
+  Key Challenges
+ </h2>
+ <div class="challenge">
+  <h3>
+   Avoiding Authentication Bottlenecks
+  </h3>
+  <p>
+   Problem: Authentication and user metadata lookups were required for most requests, creating a risk of
+overwhelming backing data stores during traffic spikes.
+  </p>
+  <p>
+   Solution: Introduced request coalescing using Go's singleflight pattern combined with aggressive caching.
+Identical concurrent requests for the same authentication data were deduplicated, ensuring only one upstream
+call was made.
+  </p>
+  <p>
+   Why it works: This significantly reduced duplicate work under bursty traffic patterns, smoothing load on
+downstream systems and improving latency.
+  </p>
+  <p>
+   Trade-off: Slight increase in complexity and potential for stale cache data, mitigated through careful TTL
+tuning.
+  </p>
+ </div>
+ <div class="challenge">
+  <h3>
+   Connection Management & TIME_WAIT
+  </h3>
+  <p>
+   Problem: High request volume led to rapid connection churn, causing large numbers of TCP connections to
+enter TIME_WAIT, eventually exhausting the ephemeral port range.
+  </p>
+  <p>
+   Solution: Optimized connection reuse through persistent connections and tuned idle connection pools. Reduced
+unnecessary connection teardown and ensured efficient reuse of existing connections.
+  </p>
+  <p>
+   Why it works: Minimizing connection churn reduces pressure on the OS networking stack and avoids port
+exhaustion, improving overall system stability.
+  </p>
+  <p>
+   Trade-off: Required careful tuning of idle timeouts and connection limits to avoid resource leaks.
+  </p>
+ </div>
+ <div class="challenge">
+  <h3>
+   Resilience & Failover
+  </h3>
+  <p>
+   Problem: Failures in downstream services or regions could propagate and degrade the entire system.
+  </p>
+  <p>
+   Solution: Implemented circuit breakers, retries with exponential backoff and jitter, and regional failover
+mechanisms.
+  </p>
+  <p>
+   Why it works: These mechanisms isolate failures and reduce amplification effects, maintaining overall system
+availability.
+  </p>
+ </div>
+</section>
+<section class="work-section">
+ <h2>
+  Results & Impact
+ </h2>
+ <ul class="metrics">
+  <li>
+   <strong>
+    ~2000 RPS
+   </strong>
+   sustained throughput
+  </li>
+  <li>
+   <strong>
+    ~50ms p99
+   </strong>
+   latency overhead
+  </li>
+  <li>
+   <strong>
+    99.99999%
+   </strong>
+   availability
+  </li>
+  <li>
+   <strong>
+    150+ services
+   </strong>
+   onboarded
+  </li>
+ </ul>
+</section>
+<section class="work-section">
+ <h2>
+  Observability
+ </h2>
+ <div class="image-block">
+  <img src="/images/grafana-latency.png">
+  <p class="caption">
+   Gateway latency remained stable at ~50ms p99 under load.
+  </p>
+ </div>
+ <div class="image-block">
+  <img src="/images/grafana-rps.png">
+  <p class="caption">
+   Sustained throughput of ~2000 requests per second.
+  </p>
+ </div>
+</section>
+<section class="work-section">
+ <h2>
+  My Contributions
+ </h2>
+ <ul>
+  <li>
+   Led end-to-end architecture and design
+  </li>
+  <li>
+   Built routing and filter pipeline
+  </li>
+  <li>
+   Designed self-serve service onboarding
+  </li>
+  <li>
+   Implemented caching and request coalescing
+  </li>
+  <li>
+   Resolved connection-level scaling issues
+  </li>
+  <li>
+   Introduced resilience patterns
+  </li>
+ </ul>
+</section>
+<section class="work-section">
+ <h2>
+  Lessons Learned
+ </h2>
+ <p>
+  Balancing flexibility with guardrails was critical. The filter-based architecture gave teams tremendous power
+to customize behavior, but without clear conventions it risked becoming a source of hidden complexity. Early
+investment in documentation and opinionated defaults paid dividends as the number of onboarded services grew.
+ </p>
+</section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/jrm780">github</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/miller-julian">linkedin</a> &nbsp;·&nbsp;
+      <a href="https://open.spotify.com/user/22axdljviev6cd5idcjkf7rpi?si=bd9efb269df6481bg">what i listen to</a> &nbsp;·&nbsp;
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;">&#106;&#117;&#108;&#105;&#97;&#110;&#64;&#106;&#117;&#108;&#105;&#97;&#110;&#109;&#105;&#108;&#108;&#101;&#114;&#46;&#99;&#97;</a>
+    </p>
+    <p>&copy; <span id="copyright-year"></span> Julian Miller</p>
+  </footer>
+
+  <script>
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+  </script>
+
+</body>
+
+</html>

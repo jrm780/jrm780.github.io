@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create --title 'Redesign Selected Work section with case studies and open source subsections' --body ':*)",
+      "Bash(/usr/local/bin/gh pr:*)",
+      "Bash(/opt/homebrew/bin/gh pr:*)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//opt/homebrew/**)",
+      "Bash(export PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\")",
+      "Bash(mdfind -name \"gh\")",
+      "Read(//Users/jmiller/.config/gh/**)",
+      "Bash(curl -s -H \"Authorization: token $\\(git config --get github.token || cat ~/.config/gh/hosts.yml)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0]['html_url'] if data else 'none'\\)\")",
+      "Bash(security find-internet-password:*)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data.get\\('html_url', data.get\\('message', 'error'\\)\\)\\)\")"
     ]
   }
 }

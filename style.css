@@ -435,6 +435,7 @@ footer p + p { margin-top: .75rem; }
     font-weight: 300;
     color: var(--text-muted);
     line-height: 1.9;
+    margin-top: 2.5rem;
 }
 .about-body p + p { margin-top: 1.25rem; }
 
@@ -451,16 +452,60 @@ footer p + p { margin-top: .75rem; }
     opacity: .9;
 }
 
-.about-tech {
+.specs-card {
     margin-top: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1.6rem 1.75rem 1.6rem 1.5rem;
+    position: relative;
+    overflow: hidden;
 }
-.about-tech > p {
+
+.specs-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(94, 196, 176, 0.07) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+.specs-card .section-label { margin-bottom: 1.25rem; }
+
+.specs-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.specs-row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.specs-label {
     font-family: var(--mono);
-    font-size: .7rem;
-    color: var(--text-faint);
-    letter-spacing: .14em;
+    font-size: .68rem;
+    color: var(--text-muted);
+    letter-spacing: .08em;
     text-transform: uppercase;
-    margin-bottom: .85rem;
+    padding-top: .15rem;
+}
+
+.specs-value {
+    font-size: .9rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.specs-value em {
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: .85rem;
 }
 
 .about-chips {

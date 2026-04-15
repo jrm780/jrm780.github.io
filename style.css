@@ -401,6 +401,7 @@ footer {
 }
 footer a { color: var(--text-muted); }
 footer a:hover { color: var(--accent); }
+footer p + p { margin-top: .75rem; }
 
 /* ─── About page ──────────────────────────────────────── */
 #about-page {

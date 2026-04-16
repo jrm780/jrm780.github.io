@@ -497,7 +497,7 @@ footer p + p { margin-top: .75rem; }
 
 .specs-value {
     font-size: .9rem;
-    font-weight: 300;
+    font-weight: 500;
     color: var(--text-muted);
     line-height: 1.6;
 }

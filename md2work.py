@@ -362,6 +362,7 @@ HTML_TEMPLATE = """\
   </div>
 
   <footer>
+    <img id="noface" src="/images/noface.gif" alt="">
     <p>
       <a href="https://github.com/jrm780" target="_blank" rel="noopener">github</a> &nbsp;·&nbsp;
       <a href="https://www.linkedin.com/in/miller-julian" target="_blank" rel="noopener">linkedin</a> &nbsp;·&nbsp;
@@ -379,6 +380,7 @@ HTML_TEMPLATE = """\
       nav.classList.toggle('scrolled', window.scrollY > 10);
     }}, {{ passive: true }});
   </script>
+  <script src="/js/noface.js"></script>
 
 </body>
 

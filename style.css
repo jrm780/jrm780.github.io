@@ -739,3 +739,24 @@ a.card:hover {
     height: auto;
     display: block;
 }
+
+footer {
+    position: relative;
+    overflow: visible;
+}
+
+#noface {
+    position: absolute;
+    right: 8%;
+    bottom: calc(100% + 1px);
+    transform: translateX(40px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 500ms ease, transform 500ms ease;
+    z-index: 100;
+}
+
+#noface.visible {
+    opacity: 1;
+    transform: translateX(0);
+}

@@ -747,9 +747,9 @@ footer {
 
 #noface {
     position: absolute;
-    right: 8%;
+    right: calc(50% - 32px);
     bottom: calc(100% + 1px);
-    transform: translateX(40px);
+    transform: translateX(10px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 500ms ease, transform 500ms ease;

@@ -3,7 +3,7 @@
   const footer = document.querySelector('footer');
   if (!noface || !footer) return;
   const characters = [
-    { src: '/images/noface.gif', duration: '400ms', right: 'calc(50% - 32px)' },
+    { src: '/images/noface.gif', duration: '500ms', right: 'calc(50% - 32px)' },
     { src: '/images/smtotoro.gif', duration: '200ms', right: 'calc(50% - 16px)' },
   ];
   // Fetch GIFs once as blobs so animation restarts are in-memory (bypasses no-cache headers)
